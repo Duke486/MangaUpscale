@@ -4,7 +4,9 @@ Windows 漫画批量超分工具，支持 ZIP、CBZ 和图片型 EPUB，输出 C
 
 ## 下载与使用
 
-从 [Releases](https://github.com/Duke486/MangaUpscale/releases) 下载 `MangaUpscale-5.0.0-Windows-x64.exe`，双击启动。无需安装 Python 或手动配置模型。首次启动自动从本仓库 Release 下载并校验运行库，随后在 `%LOCALAPPDATA%/MangaUpscale/5.0.0` 解包运行环境，后续直接打开窗口，可离线运行。下载失败后可重新打开，已完成分卷会复用。也可以将 Release 中的运行库分卷与 exe 放在同一目录，离线完成首次解包。运行需要 Windows 10/11 x64、支持 CUDA 12.8 的 NVIDIA 显卡及驱动，首次解包至少需要 11 GB 可用空间。彩页引擎首次使用时会编译并缓存。
+从 [Releases](https://github.com/Duke486/MangaUpscale/releases) 下载 exe 并双击。客户端只携带应用代码和基础 Python；首次启动从 PyTorch、PyPI、MangaJaNai 和 nunif 官方来源安装依赖、下载模型，安装过程会显示进度窗口。失败后可重新打开重试，后续可离线使用。
+
+运行需要 Windows 10/11 x64、NVIDIA 显卡及兼容 CUDA 12.8 的驱动，以及约 11 GB 可用空间。首次安装仍需下载数 GB 的显卡依赖和模型；Release 本身不托管这些大文件。彩页使用官方 BF16 ONNX 模型，首次使用时编译引擎。
 
 1. 选择漫画目录、保存位置和缓存位置。
 2. 设置需要超分的页高范围与批次默认画风。

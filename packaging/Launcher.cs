@@ -11,7 +11,6 @@ class Launcher
 {
     const string Version = "5.0.0";
     const string PayloadHash = "PAYLOAD_HASH";
-    const string PayloadParts = "PAYLOAD_PARTS";
 
     [STAThread]
     static void Main(string[] args)
@@ -20,7 +19,7 @@ class Launcher
         try
         {
             string parent = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "MangaUpscale");
-            string install = Path.Combine(parent, Version);
+            string install = Path.Combine(parent, Version + "-client");
             using (Mutex mutex = new Mutex(false, "Local\\MangaUpscaleInstall500"))
             {
                 bool acquired;
@@ -55,6 +54,13 @@ class Launcher
                             form.Close();
                         }
                     }
+                    if (!File.Exists(Path.Combine(install, "client-ready.ok")))
+                    {
+                        Process setup = Process.Start(new ProcessStartInfo(Path.Combine(install, "runtime", "python", "python.exe"),
+                            "-u \"" + Path.Combine(install, "setup_client.py") + "\"") { WorkingDirectory = install, UseShellExecute = false });
+                        setup.WaitForExit();
+                        if (setup.ExitCode != 0) throw new IOException("首次安装失败，请检查网络后重新打开；已下载内容会保留。");
+                    }
                 }
                 finally { mutex.ReleaseMutex(); }
             }
@@ -80,70 +86,6 @@ class Launcher
         }
     }
 
-    static string HashFile(string path)
-    {
-        using (SHA256 hash = SHA256.Create())
-        using (FileStream stream = File.OpenRead(path))
-            return BitConverter.ToString(hash.ComputeHash(stream)).Replace("-", "").ToLowerInvariant();
-    }
-
-    static void DownloadPayload(string parent, string payload, Label label)
-    {
-        string[] hashes = PayloadParts.Split(',');
-        if (hashes.Length == 0 || hashes[0].Length != 64)
-            throw new IOException("运行库清单无效，请重新下载启动程序。");
-        string cache = Path.Combine(parent, ".downloads");
-        Directory.CreateDirectory(cache);
-        System.Net.ServicePointManager.SecurityProtocol = System.Net.SecurityProtocolType.Tls12;
-        using (FileStream output = File.Create(payload))
-        {
-            for (int index = 0; index < hashes.Length; index++)
-            {
-                string name = "MangaUpscale-" + Version + "-runtime.7z." + (index + 1).ToString("000");
-                string part = Path.Combine(cache, hashes[index]);
-                if (!File.Exists(part) || HashFile(part) != hashes[index])
-                {
-                    string local = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), name);
-                    if (File.Exists(local)) File.Copy(local, part, true);
-                    else
-                    {
-                        string partial = part + ".partial";
-                        bool completed = false;
-                        Exception failure = null;
-                        using (System.Net.WebClient client = new System.Net.WebClient())
-                        {
-                            client.Headers["User-Agent"] = "MangaUpscale/" + Version;
-                            client.DownloadProgressChanged += delegate(object sender, System.Net.DownloadProgressChangedEventArgs progress)
-                            {
-                                label.Text = "首次下载运行环境 (" + (index + 1) + "/" + hashes.Length + ")：" + progress.ProgressPercentage + "%\n完成后自动打开，之后可离线使用。";
-                            };
-                            client.DownloadFileCompleted += delegate(object sender, System.ComponentModel.AsyncCompletedEventArgs result)
-                            {
-                                failure = result.Error;
-                                if (result.Cancelled) failure = new IOException("下载已取消。");
-                                completed = true;
-                            };
-                            client.DownloadFileAsync(new Uri("https://github.com/Duke486/MangaUpscale/releases/download/v" + Version + "/" + name), partial);
-                            while (!completed) { Application.DoEvents(); Thread.Sleep(50); }
-                        }
-                        if (failure != null) throw new IOException("运行环境下载失败，请检查网络后重新打开。已完成部分会保留。", failure);
-                        if (File.Exists(part)) File.Delete(part);
-                        File.Move(partial, part);
-                    }
-                    if (HashFile(part) != hashes[index])
-                    {
-                        File.Delete(part);
-                        throw new IOException("运行库校验失败，请重新打开以重试下载。");
-                    }
-                }
-                using (FileStream input = File.OpenRead(part)) input.CopyTo(output);
-                Application.DoEvents();
-            }
-        }
-        if (HashFile(payload) != PayloadHash) throw new IOException("运行环境完整性校验失败。");
-        foreach (string hash in hashes) File.Delete(Path.Combine(cache, hash));
-    }
-
     static void Install(string parent, string install, Label label)
     {
         Directory.CreateDirectory(parent);
@@ -161,28 +103,24 @@ class Launcher
                 byte[] length = new byte[8];
                 if (source.Read(length, 0, 8) != 8) throw new IOException("安装包已损坏。");
                 long count = BitConverter.ToInt64(length, 0);
-                if (count < 0 || count > source.Length - 8) throw new IOException("安装包长度无效。");
-                if (count == 0) DownloadPayload(parent, payload, label);
-                else
+                if (count <= 0 || count > source.Length - 8) throw new IOException("安装包长度无效。");
+                source.Seek(-8 - count, SeekOrigin.End);
+                byte[] buffer = new byte[1024 * 1024];
+                using (SHA256 hash = SHA256.Create())
+                using (FileStream target = File.Create(payload))
                 {
-                    source.Seek(-8 - count, SeekOrigin.End);
-                    byte[] buffer = new byte[1024 * 1024];
-                    using (SHA256 hash = SHA256.Create())
-                    using (FileStream target = File.Create(payload))
+                    while (count > 0)
                     {
-                        while (count > 0)
-                        {
-                            int read = source.Read(buffer, 0, (int)Math.Min(buffer.Length, count));
-                            if (read == 0) throw new IOException("安装包未下载完整。");
-                            target.Write(buffer, 0, read);
-                            hash.TransformBlock(buffer, 0, read, null, 0);
-                            count -= read;
-                            Application.DoEvents();
-                        }
-                        hash.TransformFinalBlock(new byte[0], 0, 0);
-                        if (BitConverter.ToString(hash.Hash).Replace("-", "").ToLowerInvariant() != PayloadHash)
-                            throw new IOException("安装包校验失败，请重新下载。");
+                        int read = source.Read(buffer, 0, (int)Math.Min(buffer.Length, count));
+                        if (read == 0) throw new IOException("安装包未下载完整。");
+                        target.Write(buffer, 0, read);
+                        hash.TransformBlock(buffer, 0, read, null, 0);
+                        count -= read;
+                        Application.DoEvents();
                     }
+                    hash.TransformFinalBlock(new byte[0], 0, 0);
+                    if (BitConverter.ToString(hash.Hash).Replace("-", "").ToLowerInvariant() != PayloadHash)
+                        throw new IOException("安装包校验失败，请重新下载。");
                 }
             }
             foreach (string name in new[] { "7z.exe", "7z.dll" })

@@ -1,9 +1,6 @@
 """Exercise the Windows launcher using a small synthetic payload."""
 
 import hashlib
-from functools import partial
-from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
-import threading
 import os
 from pathlib import Path
 import shutil
@@ -20,8 +17,6 @@ def main():
     seven = Path(seven)
     if seven.parent.name == "shims":
         seven = seven.parent.parent / "apps/7zip/current/7z.exe"
-    if not seven.with_name("7z.dll").is_file():
-        seven = Path(os.environ["ProgramFiles"]) / "7-Zip/7z.exe"
     csc = Path(os.environ["WINDIR"]) / "Microsoft.NET/Framework64/v4.0.30319/csc.exe"
     with tempfile.TemporaryDirectory(prefix="manga-launcher-test-") as temp:
         work = Path(temp).resolve()
@@ -29,6 +24,7 @@ def main():
         python = fixture / "runtime/python"
         python.mkdir(parents=True)
         (fixture / "bootstrap.py").write_text("# fixture\n")
+        (fixture / "client-ready.ok").write_text("fixture")
         probe = work / "Probe.cs"
         probe.write_text(
             "using System.IO; class Probe { static void Main() { "
@@ -46,7 +42,7 @@ def main():
         )
         payload = work / "fixture.7z"
         subprocess.run(
-            [str(seven), "a", "-t7z", str(payload), "runtime", "bootstrap.py"],
+            [str(seven), "a", "-t7z", str(payload), "runtime", "bootstrap.py", "client-ready.ok"],
             cwd=fixture,
             check=True,
             capture_output=True,
@@ -57,18 +53,8 @@ def main():
         parent = 'Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "MangaUpscale")'
         assert parent in source
         install_root = work / "installed"
-        source = (
-            source.replace(parent, '@"' + str(install_root) + '"')
-            .replace("PAYLOAD_HASH", digest)
-            .replace("PAYLOAD_PARTS", digest)
-        )
-        server = ThreadingHTTPServer(
-            ("127.0.0.1", 0), partial(SimpleHTTPRequestHandler, directory=str(work))
-        )
-        threading.Thread(target=server.serve_forever, daemon=True).start()
-        source = source.replace(
-            "https://github.com/Duke486/MangaUpscale/releases/download/v",
-            f"http://127.0.0.1:{server.server_port}/v",
+        source = source.replace(parent, '@"' + str(install_root) + '"').replace(
+            "PAYLOAD_HASH", digest
         )
         generated = work / "Launcher.cs"
         generated.write_text(source, encoding="utf-8")
@@ -90,32 +76,14 @@ def main():
         )
         executable = work / "test.exe"
         executable.write_bytes(stub.read_bytes() + content + struct.pack("<q", len(content)))
-        installed = install_root / "5.0.0"
+        installed = install_root / "5.0.0-client"
         for _ in range(2):
             subprocess.run([str(executable), "--startup-test"], timeout=45, check=True)
             assert (installed / "installed.ok").read_text() == digest
             assert (installed / "probe.ok").read_text() == "ready"
             assert not (installed / ".tools").exists()
             (installed / "probe.ok").unlink()
-        installed.rename(work / "offline-result")
-        part = work / "MangaUpscale-5.0.0-runtime.7z.001"
-        part.write_bytes(content)
-        executable.write_bytes(stub.read_bytes() + struct.pack("<q", 0))
-        subprocess.run([str(executable), "--startup-test"], timeout=45, check=True)
-        assert (installed / "installed.ok").read_text() == digest
-        assert (installed / "probe.ok").read_text() == "ready"
-        installed.rename(work / "external-result")
-        remote = work / "v5.0.0"
-        remote.mkdir()
-        part.rename(remote / part.name)
-        subprocess.run([str(executable), "--startup-test"], timeout=45, check=True)
-        assert (installed / "installed.ok").read_text() == digest
-        assert (installed / "probe.ok").read_text() == "ready"
-        server.shutdown()
-        server.server_close()
-    print(
-        "PASS: embedded payload, local parts, HTTP download, integrity, repeated launch and cleanup"
-    )
+    print("PASS: payload integrity, first extraction, repeated launch and cleanup")
 
 
 if __name__ == "__main__":
