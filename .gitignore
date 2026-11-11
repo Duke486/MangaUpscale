@@ -12,3 +12,4 @@ startup-status.json
 启动日志.txt
 *.partial
 *.tmp
+/漫画超分.exe
