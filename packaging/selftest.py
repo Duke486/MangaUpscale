@@ -1,6 +1,9 @@
 """Exercise the Windows launcher using a small synthetic payload."""
 
 import hashlib
+from functools import partial
+from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
+import threading
 import os
 from pathlib import Path
 import shutil
@@ -54,8 +57,18 @@ def main():
         parent = 'Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "MangaUpscale")'
         assert parent in source
         install_root = work / "installed"
-        source = source.replace(parent, '@"' + str(install_root) + '"').replace(
-            "PAYLOAD_HASH", digest
+        source = (
+            source.replace(parent, '@"' + str(install_root) + '"')
+            .replace("PAYLOAD_HASH", digest)
+            .replace("PAYLOAD_PARTS", digest)
+        )
+        server = ThreadingHTTPServer(
+            ("127.0.0.1", 0), partial(SimpleHTTPRequestHandler, directory=str(work))
+        )
+        threading.Thread(target=server.serve_forever, daemon=True).start()
+        source = source.replace(
+            "https://github.com/Duke486/MangaUpscale/releases/download/v",
+            f"http://127.0.0.1:{server.server_port}/v",
         )
         generated = work / "Launcher.cs"
         generated.write_text(source, encoding="utf-8")
@@ -84,7 +97,25 @@ def main():
             assert (installed / "probe.ok").read_text() == "ready"
             assert not (installed / ".tools").exists()
             (installed / "probe.ok").unlink()
-    print("PASS: payload integrity, first extraction, repeated launch and cleanup")
+        installed.rename(work / "offline-result")
+        part = work / "MangaUpscale-5.0.0-runtime.7z.001"
+        part.write_bytes(content)
+        executable.write_bytes(stub.read_bytes() + struct.pack("<q", 0))
+        subprocess.run([str(executable), "--startup-test"], timeout=45, check=True)
+        assert (installed / "installed.ok").read_text() == digest
+        assert (installed / "probe.ok").read_text() == "ready"
+        installed.rename(work / "external-result")
+        remote = work / "v5.0.0"
+        remote.mkdir()
+        part.rename(remote / part.name)
+        subprocess.run([str(executable), "--startup-test"], timeout=45, check=True)
+        assert (installed / "installed.ok").read_text() == digest
+        assert (installed / "probe.ok").read_text() == "ready"
+        server.shutdown()
+        server.server_close()
+    print(
+        "PASS: embedded payload, local parts, HTTP download, integrity, repeated launch and cleanup"
+    )
 
 
 if __name__ == "__main__":
