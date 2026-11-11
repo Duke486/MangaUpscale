@@ -17,6 +17,8 @@ def main():
     seven = Path(seven)
     if seven.parent.name == "shims":
         seven = seven.parent.parent / "apps/7zip/current/7z.exe"
+    if not seven.with_name("7z.dll").is_file():
+        seven = Path(os.environ["ProgramFiles"]) / "7-Zip/7z.exe"
     csc = Path(os.environ["WINDIR"]) / "Microsoft.NET/Framework64/v4.0.30319/csc.exe"
     with tempfile.TemporaryDirectory(prefix="manga-launcher-test-") as temp:
         work = Path(temp).resolve()
