@@ -9,6 +9,9 @@ $seven = (Get-Command $SevenZip).Source
 if ((Split-Path $seven) -like '*shims') {
     $seven = Join-Path (Split-Path (Split-Path $seven)) 'apps/7zip/current/7z.exe'
 }
+if (!(Test-Path (Join-Path (Split-Path $seven) '7z.dll'))) {
+    $seven = Join-Path $env:ProgramFiles '7-Zip/7z.exe'
+}
 if (!(Test-Path (Join-Path (Split-Path $seven) '7z.dll'))) { throw '7z.dll must be beside 7z.exe' }
 Push-Location $root
 try {
