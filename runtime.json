@@ -1,0 +1,69 @@
+{
+  "python": "runtime/python/python.exe",
+  "models": {
+    "manga-1200": {
+      "path": "runtime/models/4x_MangaJaNai_1200p_V1_ESRGAN_70k.pth",
+      "sha256": "6e3a8d21533b731eb3d8eaac1a09cf56290fa08faf8473cbe3debded9ab1ebe1",
+      "precision": "float16",
+      "channels_last": true,
+      "input_height": 1200
+    },
+    "manga-1300": {
+      "path": "runtime/models/4x_MangaJaNai_1300p_V1_ESRGAN_75k.pth",
+      "sha256": "eacf8210543446f3573d4ea1625f6fc11a3b2a5e18b38978873944be146417a8",
+      "precision": "float16",
+      "channels_last": true,
+      "input_height": 1300
+    },
+    "manga-1400": {
+      "path": "runtime/models/4x_MangaJaNai_1400p_V1_ESRGAN_105k.pth",
+      "sha256": "d77f977a6c6c4bf855dae55f0e9fad6ac2823fa8b2ef883b50e525369fde6a74",
+      "precision": "float16",
+      "channels_last": true,
+      "input_height": 1400
+    },
+    "manga-1500": {
+      "path": "runtime/models/4x_MangaJaNai_1500p_V1_ESRGAN_105k.pth",
+      "sha256": "5e5174b60316e9abb7875e6d2db208fec4ffc34f3d09fa7f0e0f6476f9d31687",
+      "precision": "float16",
+      "channels_last": true,
+      "input_height": 1500
+    },
+    "manga-1600": {
+      "path": "runtime/models/4x_MangaJaNai_1600p_V1_ESRGAN_70k.pth",
+      "sha256": "c126ec8d4b7434d8f6a43d24bec1f56d343104ab8a86b5e01d5d25be6b5244c0",
+      "precision": "float16",
+      "channels_last": true,
+      "input_height": 1600
+    },
+    "manga-1920": {
+      "path": "runtime/models/4x_MangaJaNai_1920p_V1_ESRGAN_105k.pth",
+      "sha256": "d469e96e590a25a86037760b26d51405c77759a55b0966b15dc76b609f72f20b",
+      "precision": "float16",
+      "channels_last": true,
+      "input_height": 1920
+    },
+    "manga-2048": {
+      "path": "runtime/models/4x_MangaJaNai_2048p_V1_ESRGAN_70k.pth",
+      "sha256": "f70e08c60da372b7207e7348486ea6b498ea8dea6246bb717530a4d45c955b9b",
+      "precision": "float16",
+      "channels_last": true,
+      "input_height": 2048
+    },
+    "illustration-detail-fdat-m-2x": {
+      "path": "runtime/models/2x_IllustrationJaNai_V3detail_FDAT_M_unshuffle_40k_fp16_1x3xHxW_dyn-HW_strong_bf16_op20.onnx",
+      "onnx": "runtime/models/2x_IllustrationJaNai_V3detail_FDAT_M_unshuffle_40k_fp16_1x3xHxW_dyn-HW_strong_bf16_op20.onnx",
+      "sha256": "979fa0f8247ceffdc66281bfabd0666dbbfb60b8585710a5514de033a8d8619f",
+      "precision": "bfloat16",
+      "scale": 2
+    },
+    "flat-art-denoise2": {
+      "path": "runtime/models/flat-art-denoise2/noise2_scale4x.pth",
+      "sha256": "cc1d97b32b4e007201f13df3ed17e76d77488858c8119f65c0206890c5e9b8d0",
+      "precision": "float32",
+      "nunif_root": "runtime/nunif"
+    }
+  },
+  "disabled_backends": [],
+  "resource_root": "."
+}

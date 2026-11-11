@@ -1,0 +1,5 @@
+# CPU-only validation tools; production GPU dependencies remain in runtime.json.
+ruff==0.14.3
+Pillow==13.0.0
+numpy==2.4.6
+PySide6==6.12.0

@@ -1,0 +1,14 @@
+__pycache__/
+*.py[cod]
+.ruff_cache/
+.pytest_cache/
+runtime/
+ui_runtime/
+build/
+dist/
+gui-settings.json
+demand-settings.json
+startup-status.json
+启动日志.txt
+*.partial
+*.tmp
