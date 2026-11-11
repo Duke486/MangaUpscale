@@ -23,7 +23,7 @@ class FixtureEngine:
 
 def main():
     with tempfile.TemporaryDirectory(prefix="janai-test-", dir=Path.cwd()) as temp:
-        root = Path(temp)
+        root = Path(temp).resolve()
         source = root / "PrivateWork"
         source.mkdir()
         job = root / "cache"

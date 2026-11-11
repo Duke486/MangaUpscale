@@ -26,7 +26,7 @@ class ReleaseTests(unittest.TestCase):
 
     def test_portable_runtime(self):
         with tempfile.TemporaryDirectory() as temp:
-            path = Path(temp) / "runtime.json"
+            path = Path(temp).resolve() / "runtime.json"
             path.write_text(
                 json.dumps(
                     {
@@ -38,9 +38,11 @@ class ReleaseTests(unittest.TestCase):
             )
             config = load_runtime(path)
             self.assertEqual(config["resource_root"], str(Path(temp).resolve()))
-            self.assertEqual(Path(config["python"]), Path(temp) / "runtime/python/python.exe")
             self.assertEqual(
-                Path(config["models"]["m"]["path"]), Path(temp) / "runtime/models/m.pth"
+                Path(config["python"]), Path(temp).resolve() / "runtime/python/python.exe"
+            )
+            self.assertEqual(
+                Path(config["models"]["m"]["path"]), Path(temp).resolve() / "runtime/models/m.pth"
             )
 
     def test_metadata_is_native_and_cleared(self):

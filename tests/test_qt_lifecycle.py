@@ -25,7 +25,7 @@ class QtLifecycle(unittest.TestCase):
         self.temp = tempfile.TemporaryDirectory()
         self.window = gui.App()
         self.window.preview.shutdown()
-        self.window.job = Path(self.temp.name)
+        self.window.job = Path(self.temp.name).resolve()
         (self.window.job / "status").mkdir()
         self.window.process = Mock()
         self.window.process.poll.return_value = None
@@ -85,7 +85,8 @@ class QtLifecycle(unittest.TestCase):
                 },
             },
         )
-        dialog = TrialDialog(self.window)
+        with patch("backend.runtime_config.load_runtime", return_value={"python": sys.executable}):
+            dialog = TrialDialog(self.window)
         try:
             for _ in range(2):
                 self.assertTrue(dialog.worker.waitForFinished(5000))
