@@ -9,8 +9,8 @@ import tensorrt as trt
 
 
 class Engine:
-    def __init__(self, skill, emit):
-        self.skill = Path(skill)
+    def __init__(self, resource_root, emit):
+        self.resource_root = Path(resource_root)
         self.emit = emit
         self.active = None
         self.ctx = None
@@ -24,7 +24,7 @@ class Engine:
         shape = core + 2 * pad
         onnxpath = Path(model.get("onnx", model["path"]))
         if onnxpath.suffix.lower() != ".onnx":
-            onnxpath = self.skill / "runtime/onnx" / (key + ".onnx")
+            onnxpath = self.resource_root / "runtime/onnx" / (key + ".onnx")
             onnxpath.parent.mkdir(parents=True, exist_ok=True)
             if not onnxpath.exists():
                 self.emit({"state": "exporting", "model": key})
@@ -49,7 +49,7 @@ class Engine:
                 del desc
         h = hashlib.sha256(onnxpath.read_bytes()).hexdigest()[:16]
         gpu = torch.cuda.get_device_properties(0)
-        cache = self.skill / "runtime/engines"
+        cache = self.resource_root / "runtime/engines"
         cache.mkdir(parents=True, exist_ok=True)
         policy = "norm32-v3" if model.get("scale", 4) == 2 else "norm32-v2"
         enginefile = (
