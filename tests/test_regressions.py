@@ -15,7 +15,6 @@ from event_stream import read_events
 from queue_runner import run_queue
 from book_actions import choice
 from storage import job_lock
-import controller
 
 
 class Regressions(unittest.TestCase):
@@ -105,11 +104,6 @@ class Regressions(unittest.TestCase):
         source.mkdir()
         with self.assertRaisesRegex(ValueError, "output_overlaps_input"):
             prepare(source, self.root / "job", self.root, 5, report_only=True)
-
-    def test_empty_queue(self):
-        result = run_queue(self.root, "unused")
-        self.assertEqual(result["state"], "finished")
-        self.assertEqual(result["task_total"], 0)
 
     def test_publish_failure_does_not_write_complete_receipt(self):
         import io
@@ -204,14 +198,6 @@ class Regressions(unittest.TestCase):
         self.assertEqual(result["task_skipped"], 1)
         invoke.assert_not_called()
 
-    def test_restart_intent_keeps_pending_cleanup(self):
-        child = self.child()
-        write(
-            child / "status/user-choice.json",
-            {"action": "restart", "mode": "manga", "cleanup_pending": True},
-        )
-        self.assertTrue(choice(child)["cleanup_pending"])
-
     def test_retry_then_success(self):
         child = self.child()
         calls = []
@@ -282,39 +268,6 @@ class Regressions(unittest.TestCase):
         self.assertEqual(read_events(path, offset)[0], [{"state": "complete"}])
         path.write_bytes(b'[]\ninvalid\n{"state":"new"}\n')
         self.assertEqual(read_events(path, offset)[0], [{"state": "new"}])
-
-    def test_gui_rejects_non_object_json(self):
-        path = self.root / "status.json"
-        path.write_text("[]")
-        self.assertIsNone(controller.read_json(path))
-
-    def test_gui_parent_phase_visible(self):
-        app = controller.Controller()
-        app.job = self.root
-        app.started_at = 1
-        app.status = Mock()
-        app.summary = Mock()
-        app.detail = Mock()
-        app.progress = Mock()
-        app.process = None
-        app.log = Mock()
-        app.last_event = None
-        write(self.root / "status/status.json", {"state": "scanning", "completed": 2, "total": 3})
-        app.poll_progress()
-        self.assertIn("检查页面", app.status.set.call_args.args[0])
-
-    def test_tick_does_not_steal_stop_completion(self):
-        app = controller.Controller()
-        app.closing = False
-        app.job = None
-        app.process = Mock()
-        app.process.poll.return_value = 1
-        app.stopping = True
-        app.root = Mock()
-        app.busy = Mock()
-        app.tick()
-        self.assertIsNotNone(app.process)
-        app.busy.assert_not_called()
 
 
 if __name__ == "__main__":

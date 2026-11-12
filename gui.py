@@ -157,6 +157,9 @@ QPushButton#primary:hover { background: #285cda; }
 QPushButton:disabled { color: #adb5c3; background: #f6f7fa; border-color: #edf0f5; }
 QPushButton#primary:disabled { background: #b7c8ee; color: white; border-color: #b7c8ee; }
 QPushButton#browse { background: #f0f3f9; border: none; padding: 8px 12px; color: #60708d; }
+QPushButton#accent { background: #ef8a1b; color: white; border-color: #ef8a1b; font-weight: 600; }
+QPushButton#accent:hover { background: #d9780c; border-color: #d9780c; }
+QPushButton#accent:disabled { background: #f2c99c; color: white; border-color: #f2c99c; }
 QCheckBox { spacing: 9px; padding: 3px 0; }
 QCheckBox::indicator { width: 17px; height: 17px; border-radius: 5px; border: 1px solid #cbd4e3; background: white; }
 QCheckBox::indicator:checked { background: #376cf0; border-color: #376cf0; image: url(CHECK_SVG); }
@@ -304,12 +307,12 @@ class App(QMainWindow, controller.Controller):
         self.height = label("", "muted", True)
         options.addWidget(self.height)
         mode = QHBoxLayout()
-        mode.addWidget(label("黑白画风", "muted"))
+        mode.addWidget(label("默认风格", "muted"))
         mode.addStretch()
         self.bw_mode = Value(settings.get("bw_mode", "传统日漫"))
         self.mode_buttons = []
         self.mode_group = QButtonGroup(self)
-        for text in ("传统日漫", "平涂"):
+        for text in ("传统日漫", "平涂", "全彩"):
             b = QPushButton(text)
             b.setCheckable(True)
             b.setChecked(text == self.bw_mode.get())
@@ -339,6 +342,9 @@ class App(QMainWindow, controller.Controller):
                 "muted",
                 True,
             )
+        )
+        reference.addWidget(
+            label("全彩：所有页（含黑白页）都按彩页处理，FDAT M 原生 2×", "muted", True)
         )
         reference.addWidget(label("日漫按长边匹配；其余两款未指定固定页高。", "muted", True))
         inspect = QHBoxLayout()

@@ -9,7 +9,7 @@ using System.Windows.Forms;
 
 class Launcher
 {
-    const string Version = "5.0.0";
+    const string Version = "APP_VERSION";
     const string PayloadHash = "PAYLOAD_HASH";
 
     [STAThread]
@@ -20,7 +20,7 @@ class Launcher
         {
             string parent = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "MangaUpscale");
             string install = Path.Combine(parent, Version + "-client");
-            using (Mutex mutex = new Mutex(false, "Local\\MangaUpscaleInstall500"))
+            using (Mutex mutex = new Mutex(false, "Local\\MangaUpscaleInstall" + Version))
             {
                 bool acquired;
                 try { acquired = mutex.WaitOne(0); }
@@ -129,7 +129,7 @@ class Launcher
                 using (FileStream target = File.Create(Path.Combine(tools, name)))
                     source.CopyTo(target);
             }
-            label.Text = "正在展开 Python、显卡运行库和模型…\n完成后自动打开漫画超分。";
+            label.Text = "正在展开应用代码和基础 Python…\n完成后继续安装运行环境。";
             Process process = Process.Start(new ProcessStartInfo(Path.Combine(tools, "7z.exe"),
                 "x \"" + payload + "\" -o\"" + staging + "\" -y -mmt=2") {
                 UseShellExecute = false, CreateNoWindow = true,

@@ -2,10 +2,14 @@
 
 from pathlib import Path
 from contextlib import contextmanager
-import hashlib, os, shutil, time, zipfile
+import errno, hashlib, os, shutil, time, zipfile
 from control import check
 from path_identity import same_location
 from archive_pages import ARCHIVES, archive_entries
+
+
+class JobBusy(OSError):
+    """Another process owns the task lock."""
 
 
 @contextmanager
@@ -16,14 +20,22 @@ def job_lock(job):
     # byte-range locking also supports an initially empty file.
     with os.fdopen(os.open(path, os.O_RDWR | os.O_CREAT, 0o600), "r+b") as f:
         f.seek(0)
-        if os.name == "nt":
-            import msvcrt
+        try:
+            if os.name == "nt":
+                import msvcrt
 
-            msvcrt.locking(f.fileno(), msvcrt.LK_NBLCK, 1)
-        else:
-            import fcntl
+                msvcrt.locking(f.fileno(), msvcrt.LK_NBLCK, 1)
+            else:
+                import fcntl
 
-            fcntl.flock(f, fcntl.LOCK_EX | fcntl.LOCK_NB)
+                fcntl.flock(f, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        except OSError as error:
+            if (
+                error.errno in (errno.EACCES, errno.EAGAIN)
+                or getattr(error, "winerror", None) == 33
+            ):
+                raise JobBusy("job_busy") from error
+            raise
         try:
             f.write(b"0")
             f.flush()

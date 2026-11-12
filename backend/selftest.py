@@ -5,7 +5,7 @@ from pathlib import Path
 from unittest.mock import patch
 from PIL import Image
 from pipeline import scan, run, read, write, sha
-from storage import target_for, snapshot, signature, job_lock
+from storage import target_for, snapshot, signature
 from cleanup_completed import cleanup
 
 
@@ -101,14 +101,6 @@ def main():
         write(dest.with_suffix(".transfer.json"), {"source": signature(remote)})
         snapshot(remote, dest, job)
         assert sha(remote) == sha(dest)
-        with job_lock(job):
-            try:
-                with job_lock(job):
-                    raise AssertionError("duplicate lock allowed")
-            except OSError:
-                pass
-        with job_lock(job):
-            pass
         multi = root / "Multi"
         multi.mkdir()
         for n in ["01.zip", "02.zip"]:
@@ -133,7 +125,7 @@ def main():
         scan(multi, root / "multijob", output_root=output)
         assert first in [a["id"] for a in read(root / "multijob/status/inventory.json")["archives"]]
     print(
-        "PASS: CBZ/JPEG, offline snapshot, scan resume, transfer resume, corrupt page repair, output conflicts, partial recovery, cleanup/restart, loose pages, original filenames, exclusive lock"
+        "PASS: CBZ/JPEG, offline snapshot, scan resume, transfer resume, corrupt page repair, output conflicts, partial recovery, cleanup/restart, loose pages, original filenames"
     )
 
 

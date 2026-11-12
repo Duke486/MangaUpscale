@@ -8,17 +8,26 @@ from storage import job_lock
 
 def choice(child):
     child = Path(child)
+    rebuilding = {}
     try:
         rebuilding = read(child / "status/rebuild-bw.json")
-        if rebuilding.get("mode") in ("flat", "manga", "color"):
+        if (
+            rebuilding.get("mode") in ("flat", "manga", "color")
+            and rebuilding.get("origin") != "default"
+        ):
             return {"action": "restart", "mode": rebuilding["mode"]}
     except (OSError, ValueError):
         pass
     try:
         preference = read(child / "status/book-preference.json")
-        if preference.get("mode") in ("flat", "manga", "color"):
-            return {"action": "restart", "mode": preference["mode"]}
-        if preference.get("mode") == "":
+        mode = preference.get("mode") or preference.get("trial", {}).get("mode")
+        if mode in ("flat", "manga", "color"):
+            return {"action": "restart", "mode": mode}
+        if preference.get("mode") == "" and rebuilding.get("mode") not in (
+            "flat",
+            "manga",
+            "color",
+        ):
             return {}
     except (OSError, ValueError):
         pass
@@ -28,6 +37,8 @@ def choice(child):
             return old
     except (OSError, ValueError):
         pass
+    if rebuilding.get("mode") in ("flat", "manga", "color"):
+        return {"action": "restart", "mode": rebuilding["mode"]}
     return {}
 
 

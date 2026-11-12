@@ -37,7 +37,13 @@ class TrialDialog(QDialog):
         self.assigned = read_json(owner.job / "state/output-paths.json") or {}
         self.source = Path(demand["config"]["source"])
         self.output = Path(demand["config"]["output"]) / self.source.name
-        self.default = "flat" if owner.bw_mode.get() == "平涂" else "manga"
+        stored = read_json(owner.job / "state/default-mode.json") or {}
+        stored_mode = stored.get("mode")
+        self.default = (
+            stored_mode
+            if stored_mode in ("flat", "manga", "color")
+            else {"平涂": "flat", "全彩": "color"}.get(owner.bw_mode.get(), "manga")
+        )
         self.plan = {
             "page_threshold": demand["config"]["threshold"],
             "height_metric": demand["config"].get("height_metric", "fit-page"),
@@ -95,7 +101,12 @@ class TrialDialog(QDialog):
         self.page.setRange(1, 1)
         toolbar.addWidget(self.page)
         self.mode = QComboBox()
-        for title, mode in (("使用批次默认", ""), ("传统日漫", "manga"), ("平涂", "flat")):
+        for title, mode in (
+            ("使用批次默认", ""),
+            ("传统日漫", "manga"),
+            ("平涂", "flat"),
+            ("全彩", "color"),
+        ):
             self.mode.addItem(title, mode)
         toolbar.addWidget(self.mode)
         self.generate = QPushButton("生成预览")
@@ -144,7 +155,12 @@ class TrialDialog(QDialog):
         return self.owner.job / "jobs" / self.books[index][0] / "status/book-preference.json"
 
     def preference(self, index):
-        return read_json(self.preference_path(index)) or {}
+        preference = read_json(self.preference_path(index)) or {}
+        if not preference.get("mode"):
+            confirmed_mode = preference.get("trial", {}).get("mode")
+            if confirmed_mode in ("flat", "manga", "color"):
+                preference["mode"] = confirmed_mode
+        return preference
 
     def effective(self, override):
         return override or self.default
@@ -160,11 +176,8 @@ class TrialDialog(QDialog):
     def refresh_queue(self):
         for i, (_, book) in enumerate(self.books):
             mode = self.preference(i).get("mode")
-            name = (
-                "平涂"
-                if self.effective(mode) == "flat"
-                else ("全彩" if mode == "color" else "传统日漫")
-            )
+            effective = self.effective(mode)
+            name = {"flat": "平涂", "color": "全彩"}.get(effective, "传统日漫")
             status = "已确认" if self.confirmed(i) else "待确认"
             failure = read_json(self.preference_path(i).with_name("status.json")) or {}
             if failure.get("state") == "failed":
@@ -208,11 +221,6 @@ class TrialDialog(QDialog):
         self.destination.setText(str(path))
         self.open_output.setEnabled(path.is_file())
         mode = self.preference(index).get("mode") or ""
-        color_index = self.mode.findData("color")
-        if mode == "color" and color_index < 0:
-            self.mode.addItem("全彩（已有单包设置）", "color")
-        elif mode != "color" and color_index >= 0:
-            self.mode.removeItem(color_index)
         self.mode.setCurrentIndex(max(0, self.mode.findData(mode)))
         self.page.blockSignals(True)
         self.page.setRange(1, 1)
@@ -312,12 +320,12 @@ class TrialDialog(QDialog):
             self.status.setText(
                 {
                     "bw": "预览已生成。",
-                    "color": "此页走彩页模型。换一张黑白页可对比两种画风。",
-                    "passthrough": "此页按当前设置保留原尺寸。请选择需要超分的黑白页。",
+                    "color": "此页走彩页模型，预览已生成。",
+                    "passthrough": "此页按当前设置保留原尺寸，预览已生成。",
                 }[candidate[1]]
             )
         elif self.request is None:
-            self.status.setText("选择黑白页和画风，再生成预览。")
+            self.status.setText("选择页面和风格，再生成预览。")
         self.update_buttons()
 
     def update_buttons(self):
@@ -330,7 +338,7 @@ class TrialDialog(QDialog):
         self.mode.setEnabled(idle and self.active_book >= 0)
         self.generate.setEnabled(idle and bool(self.original.picture) and not self.candidate())
         candidate = self.candidate()
-        self.confirm.setEnabled(idle and bool(self.result.picture) and candidate[1] == "bw")
+        self.confirm.setEnabled(idle and bool(self.result.picture) and bool(candidate))
         self.native.setEnabled(bool(self.result.picture))
         self.hold.setEnabled(bool(self.result.picture))
         if self.active_book < 0:
@@ -352,7 +360,7 @@ class TrialDialog(QDialog):
 
     def confirm_book(self):
         index = self.active_book
-        mode = self.mode.currentData()
+        mode = self.effective(self.mode.currentData())
         path = self.preference_path(index)
         pending = read_json(path.with_name("rebuild-bw.json")) or {}
         if pending.get("mode") and pending["mode"] != self.effective(mode):

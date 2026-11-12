@@ -24,6 +24,8 @@ from PySide6.QtWidgets import (
     QSizePolicy,
     QSpinBox,
     QDialog,
+    QComboBox,
+    QCheckBox,
 )
 
 
@@ -280,6 +282,12 @@ class PreviewPanel(QWidget):
             button.clicked.connect(lambda checked=False, m=mode: self.command("preference", m))
             controls.addWidget(button)
             self.actions.append(button)
+        self.default_style = QPushButton("修改默认风格")
+        self.default_style.setObjectName("accent")
+        self.default_style.setToolTip("修改本任务的默认风格；手动设置过风格的漫画包保持原样")
+        self.default_style.setEnabled(False)
+        self.default_style.clicked.connect(self.edit_default_style)
+        controls.addWidget(self.default_style)
         layout.addLayout(controls)
         pair = QHBoxLayout()
         self.boxes = []
@@ -634,8 +642,33 @@ class PreviewPanel(QWidget):
         for button, mode in zip(self.actions, ["manga", "flat", "color"]):
             button.setEnabled(bool(selected) and not self.request_id and not self.completed_dialog)
             button.setChecked(bool(selected) and selected["mode"] == mode)
+        self.default_style.setEnabled(
+            bool(self.job)
+            and bool(self.books)
+            and not self.request_id
+            and not self.completed_dialog
+        )
         self.previous.setEnabled(self.count > 0 and self.index > 0)
         self.next.setEnabled(self.count > 0 and self.index < self.count - 1)
+
+    def edit_default_style(self):
+        if self.request_id or not self.job:
+            return
+        dialog = DefaultStyleDialog(self)
+        if dialog.exec() != QDialog.Accepted:
+            return
+        mode, force = dialog.values()
+        self.preview_only = False
+        self.follow_identity = None
+        self.request_id = uuid.uuid4().hex
+        request = {
+            "id": self.request_id,
+            "action": "set-default-mode",
+            "mode": mode,
+            "force": force,
+        }
+        self.update_buttons()
+        self.launch(self.sender, ["--command", json.dumps(request)])
 
     def command(self, action, mode):
         if self.request_id or not self.selected_book:
@@ -673,6 +706,23 @@ class PreviewPanel(QWidget):
                 self.owner.log("没有可跳转的未完成漫画，已停留预览该成品。")
                 self.preview_completed(data["target"])
             return
+        if data.get("action") == "set-default-mode":
+            name = {"flat": "平涂", "color": "全彩"}.get(data.get("mode"), "传统日漫")
+            if hasattr(self.owner, "bw_mode"):
+                self.owner.bw_mode.set(name)
+                for button in getattr(self.owner, "mode_buttons", []):
+                    button.setChecked(button.text() == name)
+            if data.get("queued"):
+                self.owner.log(
+                    f"已提交默认风格修改（{name}）；将在当前漫画处理完成后或下次开始时套用。"
+                )
+            else:
+                self.owner.log(
+                    f"默认风格已改为{name}：更新 {data.get('applied', 0)} 本，"
+                    f"保留 {data.get('kept', 0)} 本手动选择或跳过设置。"
+                )
+            self.update_buttons()
+            return
         if data.get("action") in ("switch", "restart-bw"):
             self.owner.log(
                 (
@@ -693,7 +743,7 @@ class PreviewPanel(QWidget):
                 book["mode"] = data["mode"]
         self.owner.log(
             "已保存本漫画画风："
-            + ("平涂（降噪2）" if data["mode"] == "flat" else "传统日漫")
+            + {"flat": "平涂（降噪2）", "color": "全彩"}.get(data["mode"], "传统日漫")
             + "；再次处理本漫画时使用，已有缓存保留。"
         )
         self.update_buttons()
@@ -802,3 +852,52 @@ class PreviewPanel(QWidget):
         for process in (self.reader, self.sender):
             if process.state() != QProcess.NotRunning:
                 process.kill()
+
+
+class DefaultStyleDialog(QDialog):
+    def __init__(self, panel):
+        super().__init__(panel)
+        self.setWindowTitle("修改默认风格")
+        self.setMinimumWidth(380)
+        layout = QVBoxLayout(self)
+        layout.setSpacing(12)
+        title = QLabel("本任务默认风格")
+        title.setObjectName("section")
+        layout.addWidget(title)
+        hint = QLabel(
+            "修改本任务列表内漫画包的风格；手动选择、逐包确认或跳过的包保留。已完成的包会重新处理。"
+        )
+        hint.setWordWrap(True)
+        hint.setObjectName("muted")
+        layout.addWidget(hint)
+        self.mode = QComboBox()
+        for name, value in (
+            ("传统日漫", "manga"),
+            ("平涂", "flat"),
+            ("全彩（所有页按彩页处理）", "color"),
+        ):
+            self.mode.addItem(name, value)
+        from controller import read_json
+
+        stored = read_json(panel.job / "state/default-mode.json") or {}
+        mode = stored.get("mode")
+        if mode not in ("flat", "manga", "color"):
+            mode = {"平涂": "flat", "全彩": "color"}.get(panel.owner.bw_mode.get(), "manga")
+        self.mode.setCurrentIndex(max(0, self.mode.findData(mode)))
+        layout.addWidget(self.mode)
+        self.force = QCheckBox("强制覆盖本任务所有漫画包")
+        self.force.setToolTip("连同已手动设置风格的漫画包一起改为新风格，并重新处理。")
+        layout.addWidget(self.force)
+        buttons = QHBoxLayout()
+        buttons.addStretch()
+        cancel = QPushButton("取消")
+        apply = QPushButton("应用")
+        apply.setObjectName("primary")
+        cancel.clicked.connect(self.reject)
+        apply.clicked.connect(self.accept)
+        buttons.addWidget(cancel)
+        buttons.addWidget(apply)
+        layout.addLayout(buttons)
+
+    def values(self):
+        return self.mode.currentData(), self.force.isChecked()

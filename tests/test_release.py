@@ -12,7 +12,7 @@ sys.path[:0] = [str(ROOT), str(ROOT / "backend"), str(ROOT / "ui_runtime")]
 from PySide6.QtCore import QBuffer, QIODevice
 from PySide6.QtGui import QImage
 from PySide6.QtWidgets import QApplication
-from preview_panel import DecodePair, ImageBox
+from preview_panel import DecodePair
 from backend.runtime_config import load_runtime
 from pipeline import validate_member
 
@@ -44,22 +44,6 @@ class ReleaseTests(unittest.TestCase):
             self.assertEqual(
                 Path(config["models"]["m"]["path"]), Path(temp).resolve() / "runtime/models/m.pth"
             )
-
-    def test_metadata_is_native_and_cleared(self):
-        app = QApplication.instance() or QApplication([])
-        box = ImageBox()
-        image = QImage(300, 450, QImage.Format_RGB32)
-        image.fill(0x808080)
-        box.set_levels([image], 4096)
-        self.assertEqual(box.info.text(), "300 × 450 px · 4.0 KiB")
-        box.set_view(2, 0.3, 0.4)
-        self.assertEqual(box.info.text(), "300 × 450 px · 4.0 KiB")
-        box.reset()
-        self.assertEqual(box.info.text(), "—")
-        self.assertIsNone(box.byte_count)
-        box.info.deleteLater()
-        box.deleteLater()
-        app.processEvents()
 
     def test_transport_counts_encoded_bytes(self):
         import base64

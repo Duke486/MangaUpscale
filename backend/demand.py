@@ -293,7 +293,7 @@ def main():
     p.add_argument("--samples", type=int, default=5)
     p.add_argument("--threshold", type=float, default=default_threshold())
     p.add_argument("--page-height", type=int)
-    p.add_argument("--bw-mode", choices=["manga", "flat"], default="manga")
+    p.add_argument("--bw-mode", choices=["manga", "flat", "color"], default="manga")
     p.add_argument("--allow-above-recommended", action="store_true")
     p.add_argument("--repack95", action="store_true")
     p.add_argument("--output-conflicts", choices=["number", "skip"])

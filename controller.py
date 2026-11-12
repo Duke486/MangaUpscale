@@ -153,7 +153,7 @@ class Controller:
                 "--samples",
                 str(samples),
                 "--bw-mode",
-                "flat" if self.bw_mode.get() == "平涂" else "manga",
+                {"平涂": "flat", "全彩": "color"}.get(self.bw_mode.get(), "manga"),
                 "--run" if run else "--report-only",
             ]
             args.extend(["--page-height", str(self.threshold_scale.value())])

@@ -122,6 +122,9 @@ def prepare_saved(
     data = read(cp)
     config = data["config"]
     source, output = saved_locations(config, source, output)
+    from default_mode import task_default
+
+    default_mode = task_default(job, mode)
     selected = [(key, item) for key, item in data["items"].items() if item.get("needs_upscale")]
     root = batch_output_root(source, output)
     targets = output_paths(job, source, root, selected, conflicts)
@@ -147,7 +150,9 @@ def prepare_saved(
             apply(child, decision)
         if decision.get("action") == "skip":
             continue
-        effective_mode = decision.get("mode") if decision.get("action") == "restart" else mode
+        effective_mode = (
+            decision.get("mode") if decision.get("action") == "restart" else default_mode
+        )
         os.environ["MANGA_CHILD_KEY"] = key
         write(
             job / "status/active-task.json",

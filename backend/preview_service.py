@@ -242,6 +242,15 @@ def main():
             keys = {b["task"] for b in catalog(Path(args.job))}
             if request.get("action") == "navigate":
                 result = navigation(Path(args.job), request.get("target"), request.get("selection"))
+            elif request.get("action") == "set-default-mode":
+                from default_mode import submit
+
+                result = {
+                    **submit(args.job, request),
+                    "sent": True,
+                    "action": "set-default-mode",
+                    "mode": request["mode"],
+                }
             elif request.get("action") in ("switch", "restart-bw"):
                 if request.get("target") not in keys:
                     raise ValueError("invalid_target")

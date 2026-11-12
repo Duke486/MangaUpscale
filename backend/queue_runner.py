@@ -58,7 +58,30 @@ def run_queue(job, runtime, invoke=None, sleep=time.sleep):
         write(job / "status/batch-progress.json", result)
         return result
 
-    while pending:
+    from default_mode import take_request
+
+    while True:
+        request = take_request(job)
+        if request:
+            affected = set(request.get("applied_tasks", ())) & {child.name for child in children}
+            if affected:
+                for key in affected:
+                    completed_keys.discard(key)
+                    failed.pop(key, None)
+                    skipped_keys.discard(key)
+                order = {child.name: index for index, child in enumerate(children)}
+                pending = deque(
+                    sorted(
+                        {p for p in pending} | {job / "jobs" / key for key in affected},
+                        key=lambda child: order.get(child.name, len(children)),
+                    )
+                )
+                completed = len(completed_keys)
+            record("processing-batch")
+        if not pending:
+            if request:
+                continue
+            break
         from book_actions import take_switch
 
         switch = take_switch(job)

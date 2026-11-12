@@ -99,14 +99,11 @@ class QtLifecycle(unittest.TestCase):
             self.assertEqual(
                 (dialog.result.zoom, dialog.result.cx, dialog.result.cy), (3, 0.2, 0.6)
             )
-            self.assertFalse(dialog.confirm.isEnabled())
-            candidate, _ = dialog.candidate()
-            dialog.cache[0, 0, dialog.default] = candidate, "bw"
-            dialog.show_result()
+            self.assertTrue(dialog.confirm.isEnabled())
             dialog.confirm.click()
             self.assertTrue(dialog.confirmed(0))
             dialog.default = "flat" if dialog.default == "manga" else "manga"
-            self.assertFalse(dialog.confirmed(0))
+            self.assertTrue(dialog.confirmed(0))
         finally:
             dialog.reject()
 

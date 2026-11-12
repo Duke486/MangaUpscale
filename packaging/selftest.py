@@ -7,10 +7,14 @@ import shutil
 import struct
 import subprocess
 import tempfile
+import tomllib
 
 
 def main():
     package = Path(__file__).resolve().parent
+    version = tomllib.loads((package.parent / "pyproject.toml").read_text(encoding="utf-8"))[
+        "project"
+    ]["version"]
     seven = shutil.which("7z")
     if not seven:
         seven = str(Path(os.environ["ProgramFiles"]) / "7-Zip/7z.exe")
@@ -55,8 +59,10 @@ def main():
         parent = 'Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "MangaUpscale")'
         assert parent in source
         install_root = work / "installed"
-        source = source.replace(parent, '@"' + str(install_root) + '"').replace(
-            "PAYLOAD_HASH", digest
+        source = (
+            source.replace("APP_VERSION", version)
+            .replace(parent, '@"' + str(install_root) + '"')
+            .replace("PAYLOAD_HASH", digest)
         )
         generated = work / "Launcher.cs"
         generated.write_text(source, encoding="utf-8")
@@ -78,7 +84,7 @@ def main():
         )
         executable = work / "test.exe"
         executable.write_bytes(stub.read_bytes() + content + struct.pack("<q", len(content)))
-        installed = install_root / "5.0.0-client"
+        installed = install_root / (version + "-client")
         for _ in range(2):
             subprocess.run([str(executable), "--startup-test"], timeout=45, check=True)
             assert (installed / "installed.ok").read_text() == digest
