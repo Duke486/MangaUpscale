@@ -76,6 +76,7 @@ class ImageBox(QLabel):
         self.detail = None
         self.detail_rect = None
         self.native_size = None
+        self.empty_text = "尚无已完成页面\n开始处理后显示原图与结果"
         self.info = QLabel("—")
         self.info.setAlignment(Qt.AlignCenter)
         self.byte_count = None
@@ -145,11 +146,11 @@ class ImageBox(QLabel):
     def paintEvent(self, event):
         painter = QPainter(self)
         painter.setClipRect(self.rect())
-        painter.fillRect(self.rect(), QColor("#eef1f6"))
+        painter.fillRect(self.rect(), QColor("#eeeeee"))
         painter.setRenderHint(QPainter.SmoothPixmapTransform)
         if not self.picture:
-            painter.setPen(QColor("#8390a3"))
-            painter.drawText(self.rect(), Qt.AlignCenter, "等待已完成页面")
+            painter.setPen(QColor("#796970"))
+            painter.drawText(self.rect(), Qt.AlignCenter, self.empty_text)
             return
         rect = self.geometry_for_image()
         # Pick a precomputed level with enough pixels for the current display scale.
@@ -244,13 +245,13 @@ class PreviewPanel(QWidget):
         layout = QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
         controls = QHBoxLayout()
-        self.book_previous = QPushButton("上一本")
-        self.book_next = QPushButton("下一本")
+        self.book_previous = QPushButton("处理上一本")
+        self.book_next = QPushButton("处理下一本")
         self.book_previous.clicked.connect(lambda: self.move_book(-1))
         self.book_next.clicked.connect(lambda: self.move_book(1))
         controls.addWidget(self.book_previous)
         controls.addWidget(self.book_next)
-        controls.addWidget(QLabel("第"))
+        controls.addWidget(QLabel("切换处理 · 第"))
         self.book_number = QSpinBox()
         self.book_number.setRange(1, 1)
         self.book_number.setKeyboardTracking(False)
@@ -259,17 +260,22 @@ class PreviewPanel(QWidget):
         controls.addWidget(self.book_number)
         self.book_total = QLabel("/ 0 本")
         controls.addWidget(self.book_total)
-        self.title = QLabel("选择已有任务后浏览漫画")
+        self.title = QLabel("处理预览")
         self.title.setMinimumWidth(80)
+        self.title.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Preferred)
         controls.addWidget(self.title, 1)
         layout.addLayout(controls)
         controls = QHBoxLayout()
+        hint = QLabel("切换漫画会保留缓存，并续做所选漫画。")
+        hint.setObjectName("muted")
+        hint.setWordWrap(True)
+        layout.addWidget(hint)
         controls.addStretch()
         self.actions = []
         for text, mode in [
-            ("传统并重做黑白", "manga"),
-            ("平涂2并重做黑白", "flat"),
-            ("强制全局彩页并重做", "color"),
+            ("传统日漫 · 重做黑白", "manga"),
+            ("平涂 · 重做黑白", "flat"),
+            ("彩页模型 · 重做整本", "color"),
         ]:
             button = QPushButton(text)
             button.setCheckable(True)
@@ -282,7 +288,7 @@ class PreviewPanel(QWidget):
             button.clicked.connect(lambda checked=False, m=mode: self.command("preference", m))
             controls.addWidget(button)
             self.actions.append(button)
-        self.default_style = QPushButton("修改默认风格")
+        self.default_style = QPushButton("任务默认风格…")
         self.default_style.setObjectName("accent")
         self.default_style.setToolTip("修改本任务的默认风格；手动设置过风格的漫画包保持原样")
         self.default_style.setEnabled(False)
@@ -610,7 +616,7 @@ class PreviewPanel(QWidget):
         self.position.setText(
             f"{self.index + 1} / {self.count} 已完成页"
             if self.count and self.index >= 0
-            else "等待已完成页面"
+            else "尚无已完成页面"
         )
         self.update_buttons()
 
@@ -711,7 +717,7 @@ class PreviewPanel(QWidget):
             if hasattr(self.owner, "bw_mode"):
                 self.owner.bw_mode.set(name)
                 for button in getattr(self.owner, "mode_buttons", []):
-                    button.setChecked(button.text() == name)
+                    button.setChecked(button.property("mode_name") == name)
             if data.get("queued"):
                 self.owner.log(
                     f"已提交默认风格修改（{name}）；将在当前漫画处理完成后或下次开始时套用。"
@@ -759,7 +765,7 @@ class PreviewPanel(QWidget):
         label = QLabel("该漫画已完成，请选择：")
         layout.addWidget(label)
         first = QPushButton("跳到首个未完成的本（5 秒）")
-        preview = QPushButton("不执行处理任务，预览该成品")
+        preview = QPushButton("预览成品（运行中会暂停任务）")
         following = QPushButton("跳到下个未完成的本")
         for button in (first, preview, following):
             layout.addWidget(button)
@@ -858,14 +864,14 @@ class DefaultStyleDialog(QDialog):
     def __init__(self, panel):
         super().__init__(panel)
         self.setWindowTitle("修改默认风格")
-        self.setMinimumWidth(380)
+        self.setMinimumWidth(480)
         layout = QVBoxLayout(self)
         layout.setSpacing(12)
         title = QLabel("本任务默认风格")
         title.setObjectName("section")
         layout.addWidget(title)
         hint = QLabel(
-            "修改本任务列表内漫画包的风格；手动选择、逐包确认或跳过的包保留。已完成的包会重新处理。"
+            "更改本任务的默认风格。\n保留已手动设置、逐本确认或跳过的漫画；其余已完成漫画会重新处理。\n运行中修改将在当前漫画结束后应用；若先停止，将在下次开始时应用。"
         )
         hint.setWordWrap(True)
         hint.setObjectName("muted")
@@ -885,7 +891,7 @@ class DefaultStyleDialog(QDialog):
             mode = {"平涂": "flat", "强制全局彩页": "color"}.get(panel.owner.bw_mode.get(), "manga")
         self.mode.setCurrentIndex(max(0, self.mode.findData(mode)))
         layout.addWidget(self.mode)
-        self.force = QCheckBox("强制覆盖本任务所有漫画包")
+        self.force = QCheckBox("同时覆盖手动设置与跳过项")
         self.force.setToolTip("连同已手动设置风格的漫画包一起改为新风格，并重新处理。")
         layout.addWidget(self.force)
         buttons = QHBoxLayout()

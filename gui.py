@@ -27,7 +27,10 @@ from PySide6.QtWidgets import (
     QMessageBox,
     QScrollArea,
     QButtonGroup,
+    QTabWidget,
+    QComboBox,
     QSplitter,
+    QToolButton,
 )
 import controller
 
@@ -135,46 +138,56 @@ class Root:
 
 
 STYLE = """
-QWidget { font-family: "Microsoft YaHei UI"; font-size: 13px; color: #253249; }
-QMainWindow, QWidget#surface { background: #f4f6fa; }
-QFrame#card { background: #ffffff; border: 1px solid #e4e8f0; border-radius: 14px; }
+QWidget { font-family: "Microsoft YaHei UI"; font-size: 13px; color: #392f34; }
+QMainWindow, QWidget#surface, QDialog { background: #faf6f7; }
+QFrame#card { background: #ffffff; border: 1px solid #eadfe3; border-radius: 12px; }
 QLabel { background: transparent; border: none; }
-QLabel#title { font-size: 25px; font-weight: 700; color: #17243a; }
-QLabel#section { font-size: 15px; font-weight: 600; color: #17243a; }
-QLabel#muted { color: #8390a3; font-size: 12px; }
-QLabel#badge { color: #4c6fbd; background: #eaf0ff; border-radius: 6px; padding: 5px 10px; font-size: 12px; }
-QLabel#number { color: #3469e8; font-size: 24px; font-weight: 700; }
-QLabel#logo { color: white; background: #376cf0; border-radius: 11px; font-size: 22px; font-weight: 700; }
-QLineEdit { background: #f8f9fc; border: 1px solid #e5e9f1; border-radius: 7px; padding: 8px 10px; selection-background-color: #d8e4ff; }
-QLineEdit:focus { border-color: #6e95f3; background: white; }
-QLineEdit:disabled { color: #a0a9b8; }
-QPushButton { background: white; border: 1px solid #e1e6ef; border-radius: 7px; padding: 8px 15px; font-weight: 500; }
-QPushButton:hover { border-color: #96b1ee; background: #f4f7ff; }
-QPushButton:pressed { background: #e8efff; }
-QPushButton:checked { background: #edf3ff; color: #3268dc; border-color: #8fabed; }
-QPushButton#primary { background: #376cf0; color: white; border-color: #376cf0; font-weight: 600; padding: 11px 22px; }
-QPushButton#primary:hover { background: #285cda; }
-QPushButton:disabled { color: #adb5c3; background: #f6f7fa; border-color: #edf0f5; }
-QPushButton#primary:disabled { background: #b7c8ee; color: white; border-color: #b7c8ee; }
-QPushButton#browse { background: #f0f3f9; border: none; padding: 8px 12px; color: #60708d; }
-QPushButton#accent { background: #ef8a1b; color: white; border-color: #ef8a1b; font-weight: 600; }
-QPushButton#accent:hover { background: #d9780c; border-color: #d9780c; }
-QPushButton#accent:disabled { background: #f2c99c; color: white; border-color: #f2c99c; }
-QCheckBox { spacing: 9px; padding: 3px 0; }
-QCheckBox::indicator { width: 17px; height: 17px; border-radius: 5px; border: 1px solid #cbd4e3; background: white; }
-QCheckBox::indicator:checked { background: #376cf0; border-color: #376cf0; image: url(CHECK_SVG); }
-QCheckBox::indicator:disabled { background: #e2e7f0; }
-QSlider::groove:horizontal { height: 5px; border-radius: 2px; background: #e9edf5; }
-QSlider::sub-page:horizontal { background: #7097f4; border-radius: 2px; }
-QSlider::handle:horizontal { width: 16px; margin: -6px 0; border-radius: 9px; background: white; border: 2px solid #376cf0; }
-QSpinBox { padding: 6px 8px; background: #f8f9fc; border: 1px solid #e5e9f1; border-radius: 6px; }
-QProgressBar { border: none; border-radius: 3px; background: #eaf0f8; height: 6px; max-height: 6px; }
-QProgressBar::chunk { border-radius: 3px; background: #376cf0; }
-QPlainTextEdit { background: #f8f9fc; border: none; border-radius: 8px; padding: 8px; color: #758297; font-size: 11px; }
+QLabel#title { font-size: 21px; font-weight: 700; color: #392f34; }
+QLabel#section { font-size: 16px; font-weight: 600; }
+QLabel#muted { color: #796970; font-size: 12px; }
+QLabel#badge { color: #875367; background: #f8e8ee; border-radius: 6px; padding: 5px 10px; font-size: 12px; }
+QLabel#number { color: #96546d; font-size: 22px; font-weight: 700; }
+QLabel#logo { color: #875367; background: #f5dce5; border-radius: 10px; font-size: 21px; font-weight: 700; }
+QLineEdit, QSpinBox, QComboBox { background: #fffdfd; border: 1px solid #dfd3d8; border-radius: 7px; padding: 5px 8px; selection-background-color: #f4d6e1; selection-color: #392f34; }
+QLineEdit:focus, QSpinBox:focus, QComboBox:focus { border: 1px solid #be7e96; }
+QLineEdit:disabled, QSpinBox:disabled { color: #a3949a; background: #f6f2f4; }
+QPushButton, QToolButton { background: white; border: 1px solid #e3d8dd; border-radius: 7px; padding: 6px 10px; }
+QPushButton:hover, QToolButton:hover { border-color: #c997aa; background: #fff1f6; }
+QPushButton:pressed, QToolButton:pressed { background: #f5dce5; }
+QPushButton:checked, QToolButton:checked { background: #fbe8ef; color: #784157; border-color: #c58b9f; }
+QPushButton:focus, QToolButton:focus { border: 1px solid #a75f7a; }
+QPushButton#primary { background: #f2cbd9; color: #64374a; border-color: #dfadbf; font-weight: 600; padding: 7px 18px; }
+QPushButton#primary:hover { background: #edbacd; border-color: #ca91a6; }
+QPushButton:disabled, QToolButton:disabled { color: #a99ba1; background: #f6f2f4; border-color: #eee6e9; }
+QPushButton#primary:disabled { background: #f4e3ea; color: #a28b94; border-color: #ebd9e0; }
+QPushButton#browse, QToolButton#disclosure { background: #f8eff3; border: 1px solid #efdee5; color: #825367; }
+QPushButton#accent { background: #f8eff3; color: #825367; border-color: #e7cdd8; }
+QCheckBox { spacing: 9px; padding: 4px 0; }
+QCheckBox::indicator { width: 17px; height: 17px; border-radius: 4px; border: 1px solid #cdbbc3; background: white; }
+QCheckBox::indicator:checked { background: #ad6984; border-color: #ad6984; image: url(CHECK_SVG); }
+QCheckBox::indicator:disabled { background: #e8dee2; }
+QSlider::groove:horizontal { height: 5px; border-radius: 2px; background: #f1e7eb; }
+QSlider::sub-page:horizontal { background: #e5b3c5; border-radius: 2px; }
+QSlider::handle:horizontal { width: 16px; margin: -6px 0; border-radius: 9px; background: white; border: 2px solid #b97590; }
+QProgressBar { border: none; border-radius: 3px; background: #f1e7eb; min-height: 6px; max-height: 6px; }
+QProgressBar::chunk { border-radius: 3px; background: #d9a0b6; }
+QPlainTextEdit { background: #fffdfd; border: 1px solid #eadfe3; border-radius: 8px; padding: 8px; color: #73636b; font-size: 12px; }
 QScrollArea { border: none; background: transparent; }
-QScrollBar:vertical { width: 6px; background: transparent; margin: 0; }
-QScrollBar::handle:vertical { background: #d5ddea; border-radius: 3px; min-height: 24px; }
+QScrollBar:vertical { width: 8px; background: transparent; margin: 0; }
+QScrollBar::handle:vertical { background: #dfcbd4; border-radius: 4px; min-height: 24px; }
 QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical { height: 0; }
+QTabWidget::pane { border: none; background: transparent; }
+QTabBar::tab { padding: 8px 24px; margin: 0 6px 8px 0; color: #796970; border-bottom: 2px solid transparent; }
+QTabBar::tab:selected { color: #875367; border-bottom: 2px solid #cb8fa6; font-weight: 600; }
+QTabBar::tab:hover { background: #f8eaf0; border-radius: 6px; }
+QListWidget { background: #fffdfd; border: 1px solid #eadfe3; border-radius: 10px; padding: 5px; outline: none; }
+QListWidget::item { padding: 12px 8px; border-radius: 6px; margin: 2px; }
+QListWidget::item:selected { background: #f7e0e9; color: #64374a; }
+QListWidget::item:hover { background: #fbf0f4; }
+QMenu { background: #fffdfd; border: 1px solid #e3d8dd; padding: 6px; }
+QMenu::item { padding: 9px 18px; border-radius: 4px; }
+QMenu::item:selected { background: #f7e0e9; }
+QToolTip { background: #fffdfd; color: #392f34; border: 1px solid #dfcbd4; padding: 6px; }
 """
 
 
@@ -210,92 +223,133 @@ class App(QMainWindow, controller.Controller):
         self.started_at = 0
         self.event_offset = 0
         self.event_previous = None
-        self.setWindowTitle("漫画超分 · 5.0")
+        import tomllib
+
+        version = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))["project"][
+            "version"
+        ]
+        self.setWindowTitle(f"漫画超分 · {version}")
         screen = QApplication.primaryScreen().availableGeometry()
-        self.resize(min(1180, screen.width() - 24), min(1150, screen.height() - 40))
-        self.setMinimumSize(min(880, screen.width() - 24), min(560, screen.height() - 40))
-        settings = controller.read_json(ROOT / "gui-settings.json") or {}
+        self.resize(min(1280, screen.width() - 24), min(800, screen.height() - 40))
+        self.setMinimumSize(min(780, screen.width() - 24), min(540, screen.height() - 40))
+        self.settings_path = ROOT / "gui-settings.json"
+        settings = controller.read_json(self.settings_path) or {}
         surface = QWidget()
         surface.setObjectName("surface")
         self.setCentralWidget(surface)
         outer = QVBoxLayout(surface)
-        outer.setContentsMargins(26, 22, 26, 22)
-        outer.setSpacing(18)
+        outer.setContentsMargins(16, 10, 16, 10)
+        outer.setSpacing(12)
         head = QHBoxLayout()
         logo = label("漫", "logo")
         logo.setAlignment(Qt.AlignCenter)
-        logo.setFixedSize(44, 44)
+        logo.setFixedSize(34, 34)
         head.addWidget(logo)
-        head.addSpacing(8)
-        titles = QVBoxLayout()
-        titles.setSpacing(2)
-        titles.addWidget(label("漫画超分", "title"))
-        titles.addWidget(label("按需处理，继续上次进度", "muted"))
-        head.addLayout(titles)
+        head.addSpacing(6)
+        head.addWidget(label("漫画超分", "section"))
         head.addStretch()
-        head.addWidget(label("Windows · NVIDIA CUDA", "badge"))
+        info = label(f"{version}  ·  本地处理", "muted")
+        info.setToolTip("Windows · NVIDIA CUDA\n进度自动保存在任务缓存中")
+        head.addWidget(info)
         outer.addLayout(head)
-        self.sections = QSplitter(Qt.Vertical)
-        self.sections.setChildrenCollapsible(False)
-        outer.addWidget(self.sections, 1)
-        top_scroll = QScrollArea()
-        top_scroll.setWidgetResizable(True)
-        top_scroll.setMinimumHeight(80)
-        top_scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
-        topwidget = QWidget()
-        body = QHBoxLayout(topwidget)
-        body.setContentsMargins(0, 0, 0, 0)
-        body.setSpacing(18)
-        top_scroll.setWidget(topwidget)
-        self.sections.addWidget(top_scroll)
-        scroller = QScrollArea()
-        scroller.setWidgetResizable(True)
-        scroller.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
-        leftwidget = QWidget()
-        leftwidget.setObjectName("surface")
-        left = QVBoxLayout(leftwidget)
-        left.setContentsMargins(0, 0, 4, 0)
-        left.setSpacing(14)
-        scroller.setWidget(leftwidget)
-        body.addWidget(scroller, 3)
-        paths = card(left, "文件与任务")
+
+        body = QSplitter(Qt.Horizontal)
+        outer.addWidget(body, 1)
+        self.workspace = QTabWidget()
+        body.addWidget(self.workspace)
+        right_column = QWidget()
+        right = QVBoxLayout(right_column)
+        right.setContentsMargins(10, 40, 0, 0)
+        right.setSpacing(10)
+        body.addWidget(right_column)
+        body.setStretchFactor(0, 3)
+        body.setStretchFactor(1, 2)
+        body.setSizes([720, 480])
+        body.setChildrenCollapsible(False)
+        settings_scroll = QScrollArea()
+        settings_scroll.setWidgetResizable(True)
+        settings_scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        settings_column = QWidget()
+        settings_column.setObjectName("surface")
+        left = QVBoxLayout(settings_column)
+        left.setContentsMargins(0, 0, 0, 0)
+        left.setSpacing(10)
+        settings_scroll.setWidget(settings_column)
+        self.workspace.addTab(settings_scroll, "任务设置")
+        rules = QVBoxLayout()
+        rules.setSpacing(10)
+        paths = card(left, "漫画与保存位置")
+        paths.addWidget(label("支持 ZIP、CBZ 和图片型 EPUB，包含子文件夹。", "muted", True))
         grid = QGridLayout()
-        grid.setHorizontalSpacing(10)
-        grid.setVerticalSpacing(9)
+        grid.setHorizontalSpacing(12)
+        grid.setVerticalSpacing(10)
         grid.setColumnStretch(1, 1)
         paths.addLayout(grid)
+        _, advanced_layout = self.foldout(rules, "更多设置")
         self.editors = []
         self.browse_buttons = []
         for row, key, title, default in [
-            (0, "source", "漫画目录", ""),
-            (1, "output", "保存位置", str(Path.home() / "Pictures" / "MangaUpscale")),
+            (0, "source", "漫画文件夹", ""),
+            (1, "output", "保存到", str(Path.home() / "Pictures" / "MangaUpscale")),
             (
                 2,
                 "cache",
                 "缓存位置",
                 str(Path(os.environ.get("LOCALAPPDATA", Path.home())) / "MangaUpscale" / "cache"),
             ),
-            (3, "existing", "继续旧任务", ""),
         ]:
             edit = QLineEdit(str(settings.get(key, default)))
-            edit.setMinimumWidth(100)
-            edit.setPlaceholderText("可选，选择原任务文件夹" if key == "existing" else "选择文件夹")
+            edit.setMinimumWidth(80)
+            edit.setPlaceholderText("选择文件夹")
+            edit.setToolTip(edit.text())
+            edit.textChanged.connect(edit.setToolTip)
             self.editors.append(edit)
             setattr(self, key, Field(edit))
-            grid.addWidget(label(title, "muted"), row, 0)
-            grid.addWidget(edit, row, 1)
-            btn = QPushButton("浏览")
-            self.browse_buttons.append(btn)
+            target = grid
+            target.addWidget(label(title), row, 0)
+            target.addWidget(edit, row, 1)
+            btn = QPushButton("选择文件夹")
             btn.setObjectName("browse")
+            self.browse_buttons.append(btn)
             btn.clicked.connect(lambda checked=False, e=edit: self.browse(e))
-            grid.addWidget(btn, row, 2)
-        options = card(left, "处理设置")
+            target.addWidget(btn, row, 2)
+
+        self.existing = Field(QLineEdit(str(settings.get("existing", ""))))
+        self.editors.append(self.existing.widget)
+        history = card(left, "继续之前的任务")
+        history_line = QHBoxLayout()
+        self.task_picker = QComboBox()
+        self.task_picker.setSizeAdjustPolicy(QComboBox.AdjustToMinimumContentsLengthWithIcon)
+        self.task_picker.setMinimumContentsLength(12)
+        history_line.addWidget(self.task_picker, 1)
+        refresh_tasks = QPushButton("刷新")
+        refresh_tasks.clicked.connect(self.reload_tasks)
+        history_line.addWidget(refresh_tasks)
+        import_task = QPushButton("导入…")
+        import_task.clicked.connect(self.import_task)
+        history_line.addWidget(import_task)
+        history.addLayout(history_line)
+        history.addWidget(label("按漫画文件夹名选择，自动恢复路径和检测参数。", "muted", True))
+        self.browse_buttons.extend([refresh_tasks, import_task])
+        self.task_picker.currentIndexChanged.connect(self.choose_task)
+        self.cache.widget.editingFinished.connect(self.reload_tasks)
+
+        options_widget = QFrame()
+        options_widget.setObjectName("card")
+        options = QVBoxLayout(options_widget)
+        options.setContentsMargins(16, 14, 16, 14)
+        options.setSpacing(8)
+        rules.insertWidget(0, options_widget)
+        options.addWidget(label("处理规则", "section"))
         line = QHBoxLayout()
-        line.addWidget(label("页高低于"))
+        line.addWidget(label("图片长边低于"))
+        self.threshold_input = QSpinBox()
+        self.threshold_input.setRange(400, 2732)
+        self.threshold_input.setSuffix(" px")
+        self.threshold_input.setFixedWidth(124)
+        line.addWidget(self.threshold_input)
+        line.addWidget(label("时超分"))
         line.addStretch()
-        self.number = label("", "number")
-        line.addWidget(self.number)
-        line.addWidget(label("px 时超分", "muted"))
         options.addLayout(line)
         self.threshold = Value(float(settings.get("threshold", 1.5)))
         self.threshold_scale = QSlider(Qt.Horizontal)
@@ -303,106 +357,100 @@ class App(QMainWindow, controller.Controller):
         self.threshold_scale.setValue(
             int(settings.get("page_height", math.ceil(2752 / float(self.threshold.get()))))
         )
+        self.threshold_input.setValue(self.threshold_scale.value())
+        self.threshold_input.valueChanged.connect(self.threshold_scale.setValue)
+        self.threshold_scale.valueChanged.connect(self.threshold_input.setValue)
         options.addWidget(self.threshold_scale)
         self.height = label("", "muted", True)
-        options.addWidget(self.height)
+        self.height.hide()
+        options.addWidget(label("默认风格"))
         mode = QHBoxLayout()
-        mode.addWidget(label("默认风格", "muted"))
-        mode.addStretch()
         saved_mode = settings.get("bw_mode", "传统日漫")
         self.bw_mode = Value("强制全局彩页" if saved_mode == "全彩" else saved_mode)
         self.mode_buttons = []
         self.mode_group = QButtonGroup(self)
-        for text in ("传统日漫", "平涂", "强制全局彩页"):
-            b = QPushButton(text)
+        for text, title, hint in (
+            ("传统日漫", "传统日漫", "黑白线稿与网点"),
+            ("平涂", "平涂", "平整色块与简洁线条"),
+            ("强制全局彩页", "全页彩色", "所有页使用彩页模型"),
+        ):
+            b = QPushButton(title)
+            b.setToolTip(hint)
+            b.setProperty("mode_name", text)
             b.setCheckable(True)
             b.setChecked(text == self.bw_mode.get())
+            b.setMinimumHeight(30)
             self.mode_group.addButton(b)
             self.mode_buttons.append(b)
             b.clicked.connect(lambda checked=False, t=text: self.bw_mode.set(t))
-            mode.addWidget(b)
+            mode.addWidget(b, 1)
         options.addLayout(mode)
-        self.limit_check = QCheckBox("超过模型最大推荐输入页高的图片不超分")
+        options.addWidget(
+            label("传统日漫和平涂会自动识别彩页，并使用彩页模型处理。", "muted", True)
+        )
+        self.limit_check = QCheckBox("跳过超出模型建议尺寸的页面")
         self.limit_check.setChecked(settings.get("skip_large", True))
         self.skip_large = Field(self.limit_check)
-        options.addWidget(self.limit_check)
+        advanced_layout.addWidget(self.limit_check)
         self.repack_check = QCheckBox("本次启动以95质量重新打包CBZ并替换成品")
         self.repack95 = Field(self.repack_check)
         self.repack_check.hide()
-        reference = card(left, None)
-        reference.setSpacing(5)
-        reference.addWidget(label("模型输入页高参考", "muted"))
-        reference.addWidget(
-            label(
-                "MangaJaNai 黑白4×    1200 · 1300 · 1400 · 1500 · 1600 · 1920 · 2048 px", None, True
-            )
-        )
-        reference.addWidget(
-            label(
-                "waifu2x 平涂（降噪2 · 4×） / FDAT M 原生2× 彩页：软件建议上限 2048 px",
-                "muted",
-                True,
-            )
-        )
-        reference.addWidget(
-            label("传统日漫 / 平涂：自动识别彩页，彩页使用 FDAT M 原生 2×", "muted", True)
-        )
-        reference.addWidget(
-            label("强制全局彩页：所有页（含黑白页）都按彩页处理，FDAT M 原生 2×", "muted", True)
-        )
-        reference.addWidget(label("日漫按长边匹配；其余两款未指定固定页高。", "muted", True))
         inspect = QHBoxLayout()
-        inspect.addWidget(label("每本抽检", "muted"))
+        inspect.addWidget(label("检测每本前"))
         samples = QSpinBox()
         samples.setRange(1, 10)
         samples.setValue(int(settings.get("samples", 5)))
         self.samples = Field(samples)
         inspect.addWidget(samples)
-        inspect.addWidget(label("页", "muted"))
+        inspect.addWidget(label("页"))
         inspect.addStretch()
-        inspect.addWidget(label("已有成品自动跳过", "muted"))
-        options.addLayout(inspect)
+        advanced_layout.addLayout(inspect)
+        reference = card(rules, "模型说明")
+        reference.addWidget(
+            label(
+                "传统日漫：MangaJaNai 黑白 4×，按长边匹配 1200 / 1300 / 1400 / 1500 / 1600 / 1920 / 2048 px 模型。",
+                "muted",
+                True,
+            )
+        )
+        reference.addWidget(
+            label(
+                "平涂：waifu2x art，降噪 2，4×。彩页：FDAT M 原生 2×。软件建议输入尺寸上限为 2048 px。",
+                "muted",
+                True,
+            )
+        )
+        reference.addWidget(
+            label("全页彩色处理包含黑白页。平涂与彩页模型未指定固定输入页高。", "muted", True)
+        )
+        left.addLayout(rules)
+        left.addWidget(label("已有成品自动跳过 · 输出 CBZ · 原始文件保持不变", "muted", True))
         left.addStretch()
-        rightwidget = QWidget()
-        right = QVBoxLayout(rightwidget)
-        right.setContentsMargins(0, 0, 0, 0)
-        right.setSpacing(14)
-        rightwidget.setMinimumWidth(290)
-        body.addWidget(rightwidget, 2)
-        activity = card(right, "任务进度")
-        activity.addWidget(label("●  本地处理 · 自动保留进度", "badge"))
+        from preview_panel import PreviewPanel
+
+        self.preview = PreviewPanel(self)
+        self.workspace.addTab(self.preview, "处理预览")
+
+        activity = card(right, "开始控制、状态与进度")
         state = label("准备就绪", "section", True)
+        state.setMaximumHeight(52)
         activity.addWidget(state)
         self.status = Value("准备就绪", state.setText)
-        detail = label("", "muted", True)
-        self.detail = Value("", detail.setText)
-        activity.addWidget(detail)
         bar = QProgressBar()
         bar.setTextVisible(False)
         bar.setRange(0, 1000)
         bar.setValue(0)
         activity.addWidget(bar)
         self.progress = Progress(bar)
+        detail = label("", "muted", True)
+        detail.hide()
+        self.detail = Value("", lambda text: (detail.setText(text), detail.setVisible(bool(text))))
+        activity.addWidget(detail)
         summary = label("尚未检测", "muted", True)
         activity.addWidget(summary)
         self.summary = Value("尚未检测", summary.setText)
-        loglayout = card(right, "运行日志")
-        self.logs = QPlainTextEdit()
-        self.logs.setReadOnly(True)
-        self.logs.setMaximumBlockCount(1500)
-        loglayout.addWidget(self.logs, 1)
-        right.setStretch(1, 1)
-        from preview_panel import PreviewPanel
-
-        self.preview = PreviewPanel(self)
-        self.preview.setMinimumHeight(260)
-        self.sections.addWidget(self.preview)
-        self.sections.setStretchFactor(0, 1)
-        self.sections.setStretchFactor(1, 2)
-        self.sections.setSizes([350, 560])
         footer = QHBoxLayout()
-        footer.addWidget(label("上一本／下一本立即切换处理，保留各本页面缓存。", "muted"))
-        footer.addStretch()
+        footer.setSpacing(6)
         self.paused = False
         self.pause_button = QPushButton("暂停")
         self.pause_button.setEnabled(False)
@@ -412,22 +460,139 @@ class App(QMainWindow, controller.Controller):
         self.stop_button.setEnabled(False)
         self.stop_button.clicked.connect(self.stop)
         footer.addWidget(self.stop_button)
-        self.trial_button = QPushButton("逐包选模型")
+        self.trial_button = QPushButton("逐本对比")
         self.trial_button.clicked.connect(lambda: self.start(False, trial=True))
         footer.addWidget(self.trial_button)
-        self.report_button = QPushButton("仅检测")
+        self.report_button = QPushButton("检测漫画")
         self.report_button.clicked.connect(lambda: self.start(False))
         footer.addWidget(self.report_button)
-        self.run_button = QPushButton("开始 / 继续")
+        self.run_button = QPushButton("开始处理")
         self.run_button.setObjectName("primary")
         self.run_button.clicked.connect(lambda: self.start(True))
         footer.addWidget(self.run_button)
-        outer.addLayout(footer)
+        activity.insertLayout(1, footer)
+        self.logs = QPlainTextEdit()
+        self.logs.setReadOnly(True)
+        self.logs.setMaximumBlockCount(1500)
+        self.logs.setMinimumHeight(80)
+        self.logs.show()
+        log_card = card(right, "运行日志")
+        log_card.addWidget(self.logs, 1)
+        right.setStretch(right.count() - 1, 1)
+        self.reload_tasks()
         self.threshold_scale.valueChanged.connect(self.update_threshold)
         self.limit_check.toggled.connect(self.update_threshold)
         self.existing.widget.textChanged.connect(self.update_threshold)
+        self.pause_button.hide()
+        self.stop_button.hide()
         self.update_threshold()
+        for editor in (self.source.widget, self.output.widget, self.cache.widget):
+            editor.editingFinished.connect(self.save_paths)
         self.root.after(1000, self.tick)
+
+    def reload_tasks(self):
+        current = self.existing.get().strip()
+        cache = Path(self.cache.get())
+        candidates = list(cache.glob("job-gui-*/state/demand.json")) if cache.is_dir() else []
+        if current and (Path(current) / "state/demand.json").is_file():
+            candidates.append(Path(current) / "state/demand.json")
+        self.task_picker.blockSignals(True)
+        self.task_picker.clear()
+        self.task_picker.addItem("使用当前设置（自动保存进度）", "")
+        for path in sorted(set(candidates), key=lambda p: p.stat().st_mtime, reverse=True):
+            manifest = controller.read_json(path) or {}
+            config = manifest.get("config", {})
+            if not config.get("source"):
+                continue
+            import datetime
+
+            date = datetime.datetime.fromtimestamp(path.stat().st_mtime).strftime("%m-%d %H:%M")
+            task = str(path.parent.parent)
+            self.task_picker.addItem(f"{Path(config['source']).name}  ·  {date}", task)
+            self.task_picker.setItemData(
+                self.task_picker.count() - 1,
+                f"来源：{config['source']}\n保存到：{config.get('output', '')}\n断点：{task}",
+                Qt.ToolTipRole,
+            )
+        index = self.task_picker.findData(current)
+        if current and index < 0:
+            self.task_picker.addItem(f"已指定任务 · {Path(current).name}", current)
+            index = self.task_picker.count() - 1
+        self.task_picker.setCurrentIndex(max(0, index))
+        self.task_picker.blockSignals(False)
+
+    def choose_task(self, index):
+        task = self.task_picker.itemData(index) or ""
+        self.existing.set(task)
+        if not task:
+            self.save_paths()
+            return
+        manifest = controller.read_json(Path(task) / "state/demand.json") or {}
+        config = manifest.get("config", {})
+        if config.get("source"):
+            self.source.set(config["source"])
+        if config.get("output"):
+            self.output.set(config["output"])
+        if config.get("samples"):
+            self.samples.set(config["samples"])
+        stored = controller.read_json(Path(task) / "state/default-mode.json") or {}
+        mode_name = {"manga": "传统日漫", "flat": "平涂", "color": "强制全局彩页"}.get(
+            stored.get("mode")
+        )
+        if mode_name:
+            self.bw_mode.set(mode_name)
+            for button in self.mode_buttons:
+                button.setChecked(button.property("mode_name") == mode_name)
+        if config.get("threshold"):
+            self.threshold_scale.setValue(round(2752 / config["threshold"]))
+        self.save_paths()
+
+    def import_task(self):
+        task = QFileDialog.getExistingDirectory(
+            self, "选择包含 state 子目录的任务断点目录", self.cache.get()
+        )
+        if not task:
+            return
+        manifest = controller.read_json(Path(task) / "state/demand.json") or {}
+        if not manifest.get("config", {}).get("source"):
+            QMessageBox.warning(
+                self, "未找到任务", "请选择缓存中的任务断点目录，其中应包含 state/demand.json。"
+            )
+            return
+        self.existing.set(task)
+        self.reload_tasks()
+        self.choose_task(self.task_picker.currentIndex())
+
+    def foldout(self, parent, title):
+        frame = QFrame()
+        frame.setObjectName("card")
+        layout = QVBoxLayout(frame)
+        layout.setContentsMargins(14, 10, 14, 10)
+        toggle = QToolButton()
+        toggle.setObjectName("disclosure")
+        toggle.setText(title)
+        toggle.setToolButtonStyle(Qt.ToolButtonTextBesideIcon)
+        toggle.setArrowType(Qt.RightArrow)
+        toggle.setCheckable(True)
+        layout.addWidget(toggle, 0, Qt.AlignLeft)
+        content = QWidget()
+        content_layout = QVBoxLayout(content)
+        content_layout.setContentsMargins(0, 8, 0, 0)
+        content_layout.setSpacing(10)
+        content.hide()
+        toggle.toggled.connect(content.setVisible)
+        toggle.toggled.connect(
+            lambda checked: toggle.setArrowType(Qt.DownArrow if checked else Qt.RightArrow)
+        )
+        layout.addWidget(content)
+        parent.addWidget(frame)
+        return toggle, content_layout
+
+    def start(self, run, output_conflicts=None, *, trial=False, book_keys=()):
+        previous_start = self.started_at
+        controller.Controller.start(self, run, output_conflicts, trial=trial, book_keys=book_keys)
+        if run and self.started_at != previous_start:
+            self.workspace.setCurrentIndex(1)
 
     def open_trial(self):
         from trial_dialog import TrialDialog
@@ -440,17 +605,36 @@ class App(QMainWindow, controller.Controller):
     def update_threshold(self, *a):
         px = self.threshold_scale.value()
         self.threshold.set(2752 / px)
-        self.number.setText(str(px))
-        self.height.setText(f"以图片长边判断：低于 {px} px 的页面参与超分。")
+        if hasattr(self, "run_button"):
+            self.run_button.setText(
+                "继续处理" if self.existing.get().strip() or self.job else "开始处理"
+            )
+        self.height.setText(f"长边达到 {px} px 的页面保留原尺寸。")
 
     def browse(self, edit):
         path = QFileDialog.getExistingDirectory(self, "选择文件夹", edit.text())
         if path:
             edit.setText(path)
+            self.save_paths()
+            if edit is self.cache.widget:
+                self.reload_tasks()
+
+    def save_paths(self):
+        settings = controller.read_json(self.settings_path) or {}
+        settings.update(
+            {key: getattr(self, key).get() for key in ("source", "output", "cache", "existing")}
+        )
+        try:
+            controller.atomic_json(self.settings_path, settings)
+        except OSError as error:
+            self.log(f"路径保存失败：{error}")
 
     def log(self, text, epoch=None):
+        scrollbar = self.logs.verticalScrollBar()
+        position = scrollbar.value()
+        follow = position >= scrollbar.maximum() - 2
         self.logs.appendPlainText(time.strftime("%H:%M:%S", time.localtime(epoch)) + "   " + text)
-        self.logs.verticalScrollBar().setValue(self.logs.verticalScrollBar().maximum())
+        scrollbar.setValue(scrollbar.maximum() if follow else position)
 
     def busy(self, value):
         for w in [
@@ -460,12 +644,21 @@ class App(QMainWindow, controller.Controller):
             self.limit_check,
             self.repack_check,
             self.threshold_scale,
+            self.threshold_input,
+            self.task_picker,
             self.samples.widget,
             self.report_button,
             self.trial_button,
             self.run_button,
         ]:
             w.setEnabled(not value)
+        for button in (self.run_button, self.report_button, self.trial_button):
+            button.setVisible(not value)
+        self.pause_button.setVisible(value)
+        self.stop_button.setVisible(value)
+        if not value:
+            self.update_threshold()
+            self.reload_tasks()
         self.stop_button.setEnabled(value)
         self.pause_button.setEnabled(value and not getattr(self, "stopping", False))
         if not value:
@@ -566,6 +759,7 @@ class App(QMainWindow, controller.Controller):
         QTimer.singleShot(100, self.poll_stop)
 
     def closeEvent(self, event):
+        self.save_paths()
         if self.closing:
             self.preview.shutdown()
             event.accept()

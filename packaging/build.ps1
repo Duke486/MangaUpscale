@@ -17,7 +17,7 @@ if (!(Test-Path (Join-Path (Split-Path $seven) '7z.dll'))) {
     if ((Split-Path $seven) -like '*shims') { $seven=Join-Path (Split-Path (Split-Path $seven)) 'apps/7zip/current/7z.exe' }
     else { $seven=Join-Path $env:ProgramFiles '7-Zip/7z.exe' }
 }
-foreach ($name in @('bootstrap.py','setup_client.py','gui.py','controller.py','preview_panel.py','trial_dialog.py','check.svg','runtime.json','README.md','THIRD_PARTY.md','licenses','backend')) {
+foreach ($name in @('pyproject.toml','bootstrap.py','setup_client.py','gui.py','controller.py','preview_panel.py','trial_dialog.py','check.svg','runtime.json','README.md','THIRD_PARTY.md','licenses','backend')) {
     Copy-Item -LiteralPath (Join-Path $root $name) -Destination $build -Recurse -Force
 }
 & robocopy (Join-Path $root 'runtime/python') (Join-Path $build 'runtime/python') /E /R:1 /W:1 /NFL /NDL /NJH /NJS /XD site-packages __pycache__ include libs tcl Scripts /XF *.pyc *.pyo | Out-Null
