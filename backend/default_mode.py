@@ -38,7 +38,7 @@ def manual_mode(child):
         except (OSError, ValueError):
             continue
         # A book marked by a previous default-style change is not a manual choice.
-        if name == "rebuild-bw.json" and data.get("origin") == "default":
+        if name == "rebuild-bw.json" and data.get("origin") in ("default", "color-detection"):
             continue
         mode = data.get("mode") or data.get("trial", {}).get("mode")
         if mode in MODES:

@@ -173,8 +173,55 @@ def target_for(item, plan):
     return source.with_name(source.stem + suffix + ".cbz")
 
 
+def refresh_colors(job, inventory):
+    """Upgrade cached classifications under the caller's task lock, using local snapshots."""
+    from color_detection import VERSION, classify
+    from PIL import Image
+    from pipeline import read, write, sha
+
+    job = Path(job)
+    refreshed = False
+    for archive in inventory["archives"]:
+        stale = [p for p in archive["pages"] if p.get("color_version") != VERSION]
+        if not stale:
+            continue
+        checkpoint = job / "state/checkpoints" / (archive["id"] + ".json")
+        saved = read(checkpoint)
+        stage = job / "staged" / archive["id"]
+        if sha(stage) != saved["state"]["stage_sha256"]:
+            raise ValueError("source_or_stage_changed")
+        updated = []
+        with zipfile.ZipFile(stage) as source:
+            for page in stale:
+                check()
+                with source.open(page["id"]) as stream, Image.open(stream) as image:
+                    updated.append((page, classify(image)))
+        if any(page["color"] != result["color"] for page, result in updated):
+            plan_path = job / "plan.json"
+            marker = job / "status/rebuild-bw.json"
+            if plan_path.is_file() and not marker.exists():
+                plan = read(plan_path)
+                if plan.get("bw_mode") != "color":
+                    write(
+                        marker,
+                        {
+                            "mode": plan.get("bw_mode", "manga"),
+                            "cleanup_pending": False,
+                            "origin": "color-detection",
+                        },
+                    )
+            (job / "state/preview.json").unlink(missing_ok=True)
+        for page, result in updated:
+            page.update(result)
+        saved["status"] = archive
+        write(checkpoint, saved)
+        refreshed = True
+    return refreshed
+
+
 def scan_local(source, job, recursive=False, only_name=None, output_root="./output"):
     from pipeline import read, write, sha, validate_member, natural, metadata, IMAGES
+    from color_detection import VERSION
 
     source = Path(source).resolve()
     job = Path(job).resolve()
@@ -282,7 +329,11 @@ def scan_local(source, job, recursive=False, only_name=None, output_root="./outp
                         and target.exists()
                         and sha(target) == receipt.get("sha256")
                     )
-                if completed or (stage.exists() and sha(stage) == saved["state"]["stage_sha256"]):
+                current = all(p.get("color_version") == VERSION for p in saved["status"]["pages"])
+                if (completed and current) or (
+                    stage.exists() and sha(stage) == saved["state"]["stage_sha256"]
+                ):
+                    refresh_colors(job, {"archives": [saved["status"]]})
                     write(
                         job / "status/status.json",
                         {
@@ -365,7 +416,7 @@ def scan_local(source, job, recursive=False, only_name=None, output_root="./outp
                     )
                     if is_image:
                         info = previous.get("metadata")
-                        if info is None:
+                        if info is None or info.get("color_version") != VERSION:
                             info = metadata(data)
                         pages.append({"id": token, "order": order, **info})
                         analysis["entries"][str(order)] = {"token": token, "metadata": info}

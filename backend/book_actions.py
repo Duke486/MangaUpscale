@@ -11,10 +11,9 @@ def choice(child):
     rebuilding = {}
     try:
         rebuilding = read(child / "status/rebuild-bw.json")
-        if (
-            rebuilding.get("mode") in ("flat", "manga", "color")
-            and rebuilding.get("origin") != "default"
-        ):
+        if rebuilding.get("mode") in ("flat", "manga", "color") and rebuilding.get(
+            "origin"
+        ) not in ("default", "color-detection"):
             return {"action": "restart", "mode": rebuilding["mode"]}
     except (OSError, ValueError):
         pass

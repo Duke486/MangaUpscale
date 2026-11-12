@@ -42,7 +42,7 @@ class TrialDialog(QDialog):
         self.default = (
             stored_mode
             if stored_mode in ("flat", "manga", "color")
-            else {"平涂": "flat", "全彩": "color"}.get(owner.bw_mode.get(), "manga")
+            else {"平涂": "flat", "强制全局彩页": "color"}.get(owner.bw_mode.get(), "manga")
         )
         self.plan = {
             "page_threshold": demand["config"]["threshold"],
@@ -105,7 +105,7 @@ class TrialDialog(QDialog):
             ("使用批次默认", ""),
             ("传统日漫", "manga"),
             ("平涂", "flat"),
-            ("全彩", "color"),
+            ("强制全局彩页", "color"),
         ):
             self.mode.addItem(title, mode)
         toolbar.addWidget(self.mode)
@@ -177,7 +177,7 @@ class TrialDialog(QDialog):
         for i, (_, book) in enumerate(self.books):
             mode = self.preference(i).get("mode")
             effective = self.effective(mode)
-            name = {"flat": "平涂", "color": "全彩"}.get(effective, "传统日漫")
+            name = {"flat": "平涂", "color": "强制全局彩页"}.get(effective, "传统日漫")
             status = "已确认" if self.confirmed(i) else "待确认"
             failure = read_json(self.preference_path(i).with_name("status.json")) or {}
             if failure.get("state") == "failed":

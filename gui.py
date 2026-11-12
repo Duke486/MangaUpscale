@@ -309,10 +309,11 @@ class App(QMainWindow, controller.Controller):
         mode = QHBoxLayout()
         mode.addWidget(label("默认风格", "muted"))
         mode.addStretch()
-        self.bw_mode = Value(settings.get("bw_mode", "传统日漫"))
+        saved_mode = settings.get("bw_mode", "传统日漫")
+        self.bw_mode = Value("强制全局彩页" if saved_mode == "全彩" else saved_mode)
         self.mode_buttons = []
         self.mode_group = QButtonGroup(self)
-        for text in ("传统日漫", "平涂", "全彩"):
+        for text in ("传统日漫", "平涂", "强制全局彩页"):
             b = QPushButton(text)
             b.setCheckable(True)
             b.setChecked(text == self.bw_mode.get())
@@ -344,7 +345,10 @@ class App(QMainWindow, controller.Controller):
             )
         )
         reference.addWidget(
-            label("全彩：所有页（含黑白页）都按彩页处理，FDAT M 原生 2×", "muted", True)
+            label("传统日漫 / 平涂：自动识别彩页，彩页使用 FDAT M 原生 2×", "muted", True)
+        )
+        reference.addWidget(
+            label("强制全局彩页：所有页（含黑白页）都按彩页处理，FDAT M 原生 2×", "muted", True)
         )
         reference.addWidget(label("日漫按长边匹配；其余两款未指定固定页高。", "muted", True))
         inspect = QHBoxLayout()

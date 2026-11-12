@@ -117,6 +117,7 @@ def natural(s):
 
 
 def metadata(data):
+    from color_detection import classify
     from PIL import Image
     import numpy as np
 
@@ -124,14 +125,7 @@ def metadata(data):
         w, h = im.size
         if getattr(im, "n_frames", 1) != 1:
             raise ValueError("animated_image")
-        a = np.asarray(im.convert("RGB").resize((128, 128)), dtype=np.int16)
-        chroma = float(
-            max(
-                abs(a[:, :, 0] - a[:, :, 1]).mean(),
-                abs(a[:, :, 1] - a[:, :, 2]).mean(),
-                abs(a[:, :, 0] - a[:, :, 2]).mean(),
-            )
-        )
+        color = classify(im)
         # Scalar-only proxies. No thumbnails, pixel arrays, OCR, EXIF text or spatial maps escape.
         gray = im.convert("L")
         gray.thumbnail((1024, 1024))
@@ -176,8 +170,7 @@ def metadata(data):
             "height": h,
             "mode": im.mode,
             "format": im.format,
-            "color": chroma > 2,
-            "chroma": round(chroma, 3),
+            **color,
             "traits": stats,
         }
 
@@ -354,6 +347,10 @@ def run(job, planfile, runtimefile, engine=None):
     if not selected or set(selected) - {a["id"] for a in inv["archives"]}:
         raise ValueError("invalid_archive_selection")
     with job_lock(job), ThreadPoolExecutor(max_workers=1) as saver:
+        from storage import refresh_colors
+
+        if refresh_colors(job, inv):
+            write(job / "status/inventory.json", inv)
         pending = None
         preview = []
         write(job / "state/preview.json", preview)

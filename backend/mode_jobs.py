@@ -168,10 +168,23 @@ def prepare_saved(
             continue
         ready = False
         if (child / "state/map.json").exists() and (child / "plan.json").exists():
+            from storage import job_lock, refresh_colors
+            from color_detection import VERSION
+
             mapping = read(child / "state/map.json")
+            inventory = read(child / "status/inventory.json")
+            if all((child / "staged" / v["id"]).exists() for v in mapping["archives"]):
+                with job_lock(child):
+                    if refresh_colors(child, inventory):
+                        write(child / "status/inventory.json", inventory)
             plan = read(child / "plan.json")
             if (
                 all(
+                    p.get("color_version") == VERSION
+                    for v in inventory["archives"]
+                    for p in v["pages"]
+                )
+                and all(
                     target_for(v, plan) == expected and expected.is_file()
                     for v in mapping["archives"]
                 )

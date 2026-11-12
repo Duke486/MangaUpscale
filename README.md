@@ -1,15 +1,15 @@
 # 漫画超分
 
-Windows 漫画批量超分工具，支持 ZIP、CBZ 和图片型 EPUB，输出 CBZ。当前版本：5.1.0。
+Windows 漫画批量超分工具，支持 ZIP、CBZ 和图片型 EPUB，输出 CBZ。当前版本：5.1.1。
 
 ## 下载与使用
 
-从 [Releases](https://github.com/Duke486/MangaUpscale/releases) 下载 `MangaUpscale-5.1.0-Windows-x64.exe` 并双击。客户端携带应用代码、基础 Python、nunif 源码和 7-Zip；首次启动从 PyTorch、PyPI、MangaJaNai 和 nunif 官方来源安装依赖、下载模型，安装过程显示进度窗口。失败后重新打开可重试，安装完成后可离线使用。
+从 [Releases](https://github.com/Duke486/MangaUpscale/releases) 下载 `MangaUpscale-5.1.1-Windows-x64.exe` 并双击。客户端携带应用代码、基础 Python、nunif 源码和 7-Zip；首次启动从 PyTorch、PyPI、MangaJaNai 和 nunif 官方来源安装依赖、下载模型，安装过程显示进度窗口。失败后重新打开可重试，安装完成后可离线使用。
 
 运行需要 Windows 10/11 x64、NVIDIA 显卡及兼容 CUDA 12.8 的驱动，以及约 11 GB 可用空间。首次安装需下载数 GB 的显卡依赖和模型；Release 本身不托管这些大文件。彩页使用官方 BF16 ONNX 模型，首次使用时编译引擎。
 
 1. 选择漫画目录、保存位置和缓存位置。
-2. 设置需要超分的页高范围与默认风格（传统日漫、平涂或全彩）。
+2. 设置需要超分的页高范围与默认风格（传统日漫、平涂或强制全局彩页）。
 3. 点击「仅检测」查看待处理数量，或点击「逐包选模型」选页对比并确认各包设置。
 4. 点击「开始 / 继续」。暂停、停止后可继续，已存在的成品自动跳过。
 
@@ -29,9 +29,11 @@ Windows 漫画批量超分工具，支持 ZIP、CBZ 和图片型 EPUB，输出 C
 | --- | --- | --- |
 | 传统日漫 | MangaJaNai V1 ESRGAN，按长边选择 1200–2048p 模型，4× | IllustrationJaNai V3detail FDAT M，原生 2× |
 | 平涂 | waifu2x art，降噪 2，4× | IllustrationJaNai V3detail FDAT M，原生 2× |
-| 全彩 | IllustrationJaNai V3detail FDAT M，原生 2× | IllustrationJaNai V3detail FDAT M，原生 2× |
+| 强制全局彩页 | IllustrationJaNai V3detail FDAT M，原生 2× | IllustrationJaNai V3detail FDAT M，原生 2× |
 
-全彩风格让黑白页也走彩页模型；页高范围和跳过过大页的设置仍然生效。
+传统日漫和平涂两档均自动识别彩页；「强制全局彩页」让所有页统一走彩页模型；页高范围和跳过过大页的设置仍然生效。
+
+自动检测会检查画面主体中的局部彩色线条、贴纸、标题和角色，并抑制页边、页角的小面积彩色水印及轻微纸张偏色。预览与正式处理使用同一套检测。继续旧任务时会从本地快照更新旧检测；分类发生变化的漫画包会重新打包，未变化的页面复用缓存，旧成品在新成品校验通过后替换。
 
 图片型 EPUB 按 spine 页序读取，输出使用连续页码。ZIP/CBZ 保留包内阅读顺序和原始页名；需要转为 JPEG 的页面改用 `.jpg` 扩展名。
 
@@ -50,7 +52,7 @@ python -m pip install -r requirements-dev.txt
 
 GPU 运行库和模型不提交到源码仓库；`runtime.json` 使用相对路径，随安装目录一起移动。准备好 `runtime/python`、`runtime/nunif` 和 7-Zip 后，运行 `./packaging/build.ps1` 构建轻量单文件客户端，产物及 SHA-256 校验文件在 `dist/client/`。版本号从 `pyproject.toml` 读取，构建时清空 `build/client/`，避免旧文件混入。
 
-发布的 exe 将程序安装到 `%LOCALAPPDATA%/MangaUpscale/5.1.0-client/`。仓库内的 `漫画超分.exe` 使用 `packaging/LocalLauncher.cs`，直接启动旁边已经准备好的运行环境；更新源码后可继续使用。
+发布的 exe 将程序安装到 `%LOCALAPPDATA%/MangaUpscale/5.1.1-client/`。仓库内的 `漫画超分.exe` 使用 `packaging/LocalLauncher.cs`，直接启动旁边已经准备好的运行环境；更新源码后可继续使用。
 
 ## 第三方组件
 

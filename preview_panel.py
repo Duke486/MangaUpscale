@@ -269,7 +269,7 @@ class PreviewPanel(QWidget):
         for text, mode in [
             ("传统并重做黑白", "manga"),
             ("平涂2并重做黑白", "flat"),
-            ("全彩并重做整本", "color"),
+            ("强制全局彩页并重做", "color"),
         ]:
             button = QPushButton(text)
             button.setCheckable(True)
@@ -707,7 +707,7 @@ class PreviewPanel(QWidget):
                 self.preview_completed(data["target"])
             return
         if data.get("action") == "set-default-mode":
-            name = {"flat": "平涂", "color": "全彩"}.get(data.get("mode"), "传统日漫")
+            name = {"flat": "平涂", "color": "强制全局彩页"}.get(data.get("mode"), "传统日漫")
             if hasattr(self.owner, "bw_mode"):
                 self.owner.bw_mode.set(name)
                 for button in getattr(self.owner, "mode_buttons", []):
@@ -726,7 +726,7 @@ class PreviewPanel(QWidget):
         if data.get("action") in ("switch", "restart-bw"):
             self.owner.log(
                 (
-                    "正在清除本漫画全部页缓存，并以全彩2×从头重做。"
+                    "正在清除本漫画全部页缓存，并以强制全局彩页 2×从头重做。"
                     if data.get("mode") == "color"
                     else "正在停止并重做本漫画的黑白页；彩页缓存保留。"
                 )
@@ -743,7 +743,7 @@ class PreviewPanel(QWidget):
                 book["mode"] = data["mode"]
         self.owner.log(
             "已保存本漫画画风："
-            + {"flat": "平涂（降噪2）", "color": "全彩"}.get(data["mode"], "传统日漫")
+            + {"flat": "平涂（降噪2）", "color": "强制全局彩页"}.get(data["mode"], "传统日漫")
             + "；再次处理本漫画时使用，已有缓存保留。"
         )
         self.update_buttons()
@@ -874,7 +874,7 @@ class DefaultStyleDialog(QDialog):
         for name, value in (
             ("传统日漫", "manga"),
             ("平涂", "flat"),
-            ("全彩（所有页按彩页处理）", "color"),
+            ("强制全局彩页（所有页按彩页处理）", "color"),
         ):
             self.mode.addItem(name, value)
         from controller import read_json
@@ -882,7 +882,7 @@ class DefaultStyleDialog(QDialog):
         stored = read_json(panel.job / "state/default-mode.json") or {}
         mode = stored.get("mode")
         if mode not in ("flat", "manga", "color"):
-            mode = {"平涂": "flat", "全彩": "color"}.get(panel.owner.bw_mode.get(), "manga")
+            mode = {"平涂": "flat", "强制全局彩页": "color"}.get(panel.owner.bw_mode.get(), "manga")
         self.mode.setCurrentIndex(max(0, self.mode.findData(mode)))
         layout.addWidget(self.mode)
         self.force = QCheckBox("强制覆盖本任务所有漫画包")
