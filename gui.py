@@ -405,7 +405,7 @@ class App(QMainWindow, controller.Controller):
         inspect.addWidget(label("页"))
         inspect.addStretch()
         advanced_layout.addLayout(inspect)
-        reference = card(rules, "模型说明")
+        reference = card(advanced_layout, "模型说明")
         reference.addWidget(
             label(
                 "传统日漫：MangaJaNai 黑白 4×，按长边匹配 1200 / 1300 / 1400 / 1500 / 1600 / 1920 / 2048 px 模型。",
