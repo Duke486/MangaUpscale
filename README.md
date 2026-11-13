@@ -2,48 +2,29 @@
 
 # 漫画超分 · MangaUpscale
 
-### 让喜欢的漫画，经得起放大。
+Windows 漫画批量超分工具，支持 ZIP、CBZ、图片型 EPUB，输出 CBZ。
 
-黑白线稿、网点与彩页，按画面选择模型，把整套漫画整理成更清晰的 CBZ。
-
-[下载 Windows 客户端](https://github.com/Duke486/MangaUpscale/releases/latest) · [开始使用](#开始使用) · [交流与反馈](https://github.com/Duke486/MangaUpscale/issues)
+[下载客户端](https://github.com/Duke486/MangaUpscale/releases/latest) · [使用说明](#开始使用) · [问题反馈](https://github.com/Duke486/MangaUpscale/issues)
 
 </div>
 
-![漫画超分桌面界面：任务设置、模型说明与处理控制](docs/images/app-settings.png)
+## 任务设置
 
-小尺寸的漫画放到大屏上，线条与文字也跟着变得模糊。同一套书里，黑白正文、彩色扉页与不同尺寸的扫描页，又需要不同的处理方式。
+选择漫画、输出与缓存目录，设置超分尺寸和默认模型。支持子文件夹扫描、历史任务恢复、暂停和断点续做。源文件保持不变，成品校验通过后保存。
 
-漫画超分是一款 **Windows 本地批量超分工具**，支持 ZIP、CBZ 与图片型 EPUB，统一输出 CBZ。按页识别黑白与彩色，按需放大；也可以先逐本对比效果，再决定每本使用的风格。任务进度保存在本地，暂停后随时接着处理。
+![任务设置](docs/images/01-settings.png)
 
-## 从一页对比，到整套收藏
+## 逐本对比
 
-<table>
-<tr>
-<td width="50%" valign="top">
-<h3>黑白与彩色，各有选择</h3>
-<p>传统日漫使用 MangaJaNai 处理线稿与网点，平涂风格使用 waifu2x art；自动识别的彩页交给 IllustrationJaNai。也可以选择全页彩色，让整本统一使用彩页模型。</p>
-<p>识别会检查画面主体里的局部彩色线条、标题、贴纸与角色，并抑制页边小面积彩色水印和轻微纸张偏色。预览与正式处理使用同一套检测。</p>
-</td>
-<td width="50%" valign="top">
-<h3>先看效果，再处理整本</h3>
-<p>在逐本对比中横向浏览页面缩略图，选一页生成预览，左右查看原图与结果。滚轮缩放、拖动、双击适屏，也能按住查看原图。</p>
-<p>每本可独立选择风格，确认后保存这次选择；之后修改任务默认风格，也会保留已确认的设置。从对比窗口启动时，只处理已确认的漫画。</p>
-</td>
-</tr>
-<tr>
-<td width="50%" valign="top">
-<h3>处理到哪里，就从哪里继续</h3>
-<p>扫描漫画文件夹及其子文件夹，批量处理整套收藏。暂停、停止后保留断点，继续时复用已校验的缓存，已有成品自动跳过。</p>
-<p>历史任务直接从缓存位置读取，默认选择最新记录。切回某个任务，恢复它的漫画路径、保存位置、检测参数与默认风格。</p>
-</td>
-<td width="50%" valign="top">
-<h3>边处理，边看清每一步</h3>
-<p>处理预览展示已完成页面及原图，分辨率与文件大小随页显示。可以切换实际处理的漫画，单独调整模型、重做当前本，或统一修改任务默认风格。</p>
-<p>状态、进度与日志常驻右侧，右栏可拖动调整宽度。源漫画保持不变，生成的 CBZ 通过校验后才写入保存位置。</p>
-</td>
-</tr>
-</table>
+选择页面生成预览，左右对比原图与结果，支持缩放、拖动和按住看原图。每本可单独指定模型，确认后批量处理。
+
+![逐本对比](docs/images/02-comparison.png)
+
+## 处理预览
+
+查看已完成页面，切换处理的漫画，修改单本模型或任务默认风格。可重做黑白页并保留彩页缓存，也可用彩页模型重做整本。
+
+![处理预览](docs/images/03-processing.png)
 
 ## 开始使用
 
@@ -88,7 +69,7 @@
 
 </details>
 
-## 按画面，选择合适的模型
+## 模型
 
 | 风格 | 黑白页 | 彩页 |
 | --- | --- | --- |
@@ -100,13 +81,13 @@
 
 继续旧任务时，会从本地快照更新旧版颜色检测结果。分类变化的漫画包会重新打包，未变化的页面复用缓存，新成品校验通过后替换旧成品。
 
-## 整理成方便阅读的 CBZ
+## 输出格式
 
 ZIP / CBZ 保留包内阅读顺序与原始页名；图片型 EPUB 按 spine 页序读取，输出使用连续页码。新任务保留原始包名，需要转为 JPEG 的页面使用 `.jpg` 扩展名。
 
 处理只对低于所设长边阈值、且符合尺寸规则的页面进行超分，其余页面保留原尺寸。输出统一打包为 CBZ，可交给支持该格式的阅读器继续阅读。
 
-## 技术细节与开发
+## 开发与构建
 
 Python 3.11+ 与 PySide6 桌面界面，PyTorch / nunif 处理黑白页，TensorRT 处理彩页。本地任务缓存保存进度与风格，运行环境通过 `runtime.json` 的相对路径配置，可随安装目录移动。
 
@@ -145,8 +126,8 @@ GPU 运行库与模型不提交到源码仓库。准备好 `runtime/python`、`r
 
 </details>
 
-## 致谢与第三方组件
+## 第三方组件
 
-感谢 [MangaJaNai / IllustrationJaNai](https://github.com/the-database/MangaJaNai)、[nunif / waifu2x](https://github.com/nagadomi/nunif)、PyTorch、TensorRT、PySide6 与 7-Zip 等项目。
+主要依赖：[MangaJaNai / IllustrationJaNai](https://github.com/the-database/MangaJaNai)、[nunif / waifu2x](https://github.com/nagadomi/nunif)、PyTorch、TensorRT、PySide6、7-Zip。
 
 MangaJaNai / IllustrationJaNai 模型采用 **CC BY-NC 4.0，仅限非商业使用**。各组件来源、许可证与随附声明见 [第三方说明](THIRD_PARTY.md) 和 [许可证目录](licenses)。
